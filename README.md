@@ -1,2 +1,2 @@
 # Heatmap
-High Scale Heat map rendering - WebGL based.
+High Scale Heatmap rendering - WebGL based.
