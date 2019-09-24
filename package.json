@@ -1,0 +1,42 @@
+{
+  "name": "Advanced Heatmap",
+  "version": "1.0.0",
+  "description": "\"Advanced Heatmap with High Scale webGL based rendering.\"",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nswamy14/Heatmap.git"
+  },
+  "keywords": [
+    "WebGL",
+    "Heatmap",
+    "2d",
+    "Rendering",
+    "visualization",
+    "HighScale"
+  ],
+  "author": "Narayana Swamy",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/nswamy14/Heatmap/issues"
+  },
+  "homepage": "https://github.com/nswamy14/Heatmap#readme",
+  "devDependencies": {
+    "eslint": "^6.4.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-loader": "^3.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "rollup": "^1.21.4",
+    "rollup-plugin-buble": "^0.19.8",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-eslint": "^7.0.0",
+    "rollup-plugin-terser": "^5.1.2",
+    "rollup-plugin-uglify": "^6.0.3"
+  }
+}
