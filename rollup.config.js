@@ -18,14 +18,14 @@ export default [{
 	input: './main.js',
 	output: [{
 		banner,
-		file: 'dist/heatmap.esm.browser.js',
+		file: 'dist/visualHeatmap.esm.browser.js',
 		format: 'esm',
-		name: 'heatmap'
+		name: 'visualHeatmap'
 	}, {
 		banner,
-		file: 'dist/heatmap.js',
+		file: 'dist/visualHeatmap.js',
 		format: 'umd',
-		name: 'heatmap'
+		name: 'visualHeatmap'
 	}],
 	plugins: [
 		commonjs(),
@@ -37,9 +37,9 @@ export default [{
 	input: './main.js',
 	output: [{
 		banner,
-		file: 'dist/heatmap.legacy.js',
+		file: 'dist/visualHeatmap.legacy.js',
 		format: 'umd',
-		name: 'heatmap'
+		name: 'visualHeatmap'
 	}],
 	plugins: [
 		commonjs(),
@@ -52,16 +52,16 @@ export default [{
 }, {
 	input: './main.js',
 	output: [{
-		file: 'dist/heatmap.min.js',
+		file: 'dist/visualHeatmap.min.js',
 		banner,
 		format: 'umd',
-		name: 'heatmap',
+		name: 'visualHeatmap',
 		compact: true
 	}, {
-		file: 'dist/heatmap.esm.browser.min.js',
+		file: 'dist/visualHeatmap.esm.browser.min.js',
 		banner,
 		format: 'esm',
-		name: 'heatmap',
+		name: 'visualHeatmap',
 		compact: true
 	}],
 	plugins: [
@@ -75,9 +75,9 @@ export default [{
 	input: './main.js',
 	output: [{
 		banner,
-		file: 'dist/heatmap.legacy.min.js',
+		file: 'dist/visualHeatmap.legacy.min.js',
 		format: 'umd',
-		name: 'heatmap'
+		name: 'visualHeatmap'
 	}],
 	plugins: [
 		commonjs(),
