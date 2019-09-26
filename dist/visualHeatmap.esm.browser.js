@@ -15,87 +15,85 @@ function getPixlRatio (ctx) {
 }
 
 var GradfragmentShader = `
-                    precision mediump float; uniform float u_max; uniform float u_blurr;
-                    varying float v_i;
-                    void main() {
-                        float r = 0.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy);
-                        if(r > 1.0) { discard; } else { gl_FragColor = vec4(0, 0, 0, (v_i/u_max) * (u_blurr) * (1.0 - sqrt(r))); }
-                    }
-            `;
+	precision mediump float;
+	uniform float u_max;
+	uniform float u_blurr;
+	varying float v_i;
+	void main() {
+		float r = 0.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy);
+		if(r > 1.0) { discard; } else { gl_FragColor = vec4(0, 0, 0, (v_i/u_max) * (u_blurr) * (1.0 - sqrt(r))); }
+	}`;
 var GradvertexShader = `
-				attribute vec2 a_position; attribute float a_intensity; uniform float u_size; uniform vec2 u_resolution; uniform vec2 u_translate; uniform float u_zoom; uniform float u_angle; uniform float u_density;
-				varying float v_i;
+	attribute vec2 a_position; attribute float a_intensity; uniform float u_size; uniform vec2 u_resolution; uniform vec2 u_translate; uniform float u_zoom; uniform float u_angle; uniform float u_density;
+	varying float v_i;
 
-				vec2 rotation(vec2 v, float a) {
-					float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); 
-					return m * v;
-				}
+	vec2 rotation(vec2 v, float a) {
+		float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); 
+		return m * v;
+	}
 
-				void main() {
-					vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
-					vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
-					zeroToTwo = zeroToTwo * u_zoom;
-					zeroToTwo = rotation(zeroToTwo, u_angle);
-					gl_Position = vec4(zeroToTwo , 0, 1);
-					gl_PointSize = u_size * u_density;
-					v_i = a_intensity;
-				}
-			`;
+	void main() {
+		vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
+		vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
+		zeroToTwo = zeroToTwo * u_zoom;
+		zeroToTwo = rotation(zeroToTwo, u_angle);
+		gl_Position = vec4(zeroToTwo , 0, 1);
+		gl_PointSize = u_size * u_density;
+		v_i = a_intensity;
+	}`;
 
 var ColorfragmentShader = `
-						precision mediump float;
-						varying vec2 v_texCoord;
-						uniform sampler2D u_framebuffer; uniform vec4 u_colorArr[100]; uniform float u_colorCount; uniform float u_opacity; uniform float u_offset[100];
+	precision mediump float;
+	varying vec2 v_texCoord;
+	uniform sampler2D u_framebuffer; uniform vec4 u_colorArr[100]; uniform float u_colorCount; uniform float u_opacity; uniform float u_offset[100];
 
-						float remap ( float minval, float maxval, float curval ) {
-							return ( curval - minval ) / ( maxval - minval );
-						}
+	float remap ( float minval, float maxval, float curval ) {
+		return ( curval - minval ) / ( maxval - minval );
+	}
 
-						void main() {
-							vec4 color = vec4(texture2D(u_framebuffer, v_texCoord.xy));
-							if (color.a == 0.0) {
-								discard;
-							} else {
-								vec4 color_;
-								float fract = 1.0 / (u_colorCount - 1.0);
-								if (color.a <= u_offset[1]) {
-									color_ = mix( u_colorArr[0], u_colorArr[1], remap( u_offset[0], u_offset[1], color.a ) );
-								} else if (color.a <= u_offset[2]) {
-									color_ = mix( u_colorArr[1], u_colorArr[2], remap( u_offset[1], u_offset[2], color.a ) );
-								} else if (color.a <= u_offset[3]) {
-									color_ = mix( u_colorArr[2], u_colorArr[3], remap( u_offset[2], u_offset[3], color.a ) );
-								} else if (color.a <= u_offset[4]) {
-									color_ = mix( u_colorArr[3], u_colorArr[4], remap( u_offset[3], u_offset[4], color.a ) );
-								} else if (color.a <= u_offset[5]) {
-									color_ = mix( u_colorArr[4], u_colorArr[5], remap( u_offset[4], u_offset[5], color.a ) );
-								} else if (color.a <= u_offset[6]) {
-									color_ = mix( u_colorArr[5], u_colorArr[6], remap( u_offset[5], u_offset[6], color.a ) );
-								} else if (color.a <= u_offset[7]) {
-									color_ = mix( u_colorArr[6], u_colorArr[7], remap( u_offset[6], u_offset[7], color.a ) );
-								} else if (color.a <= u_offset[8]) {
-									color_ = mix( u_colorArr[7], u_colorArr[8], remap( u_offset[7], u_offset[8], color.a ) );
-								} else if (color.a <= u_offset[9]) {
-									color_ = mix( u_colorArr[8], u_colorArr[9], remap( u_offset[8], u_offset[9], color.a ) );
-								} else if (color.a <= u_offset[10]) {
-									color_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], color.a ) );
-								}
-								color_.a = color.a - (1.0 - u_opacity);
-								if (color_.a < 0.0) {
-									color_.a = 0.0;
-								}
-								gl_FragColor = color_;
-							}
-						}
-				`;
+	void main() {
+		vec4 color = vec4(texture2D(u_framebuffer, v_texCoord.xy));
+		if (color.a == 0.0) {
+			discard;
+		} else {
+			vec4 color_;
+			float fract = 1.0 / (u_colorCount - 1.0);
+			if (color.a <= u_offset[1]) {
+				color_ = mix( u_colorArr[0], u_colorArr[1], remap( u_offset[0], u_offset[1], color.a ) );
+			} else if (color.a <= u_offset[2]) {
+				color_ = mix( u_colorArr[1], u_colorArr[2], remap( u_offset[1], u_offset[2], color.a ) );
+			} else if (color.a <= u_offset[3]) {
+				color_ = mix( u_colorArr[2], u_colorArr[3], remap( u_offset[2], u_offset[3], color.a ) );
+			} else if (color.a <= u_offset[4]) {
+				color_ = mix( u_colorArr[3], u_colorArr[4], remap( u_offset[3], u_offset[4], color.a ) );
+			} else if (color.a <= u_offset[5]) {
+				color_ = mix( u_colorArr[4], u_colorArr[5], remap( u_offset[4], u_offset[5], color.a ) );
+			} else if (color.a <= u_offset[6]) {
+				color_ = mix( u_colorArr[5], u_colorArr[6], remap( u_offset[5], u_offset[6], color.a ) );
+			} else if (color.a <= u_offset[7]) {
+				color_ = mix( u_colorArr[6], u_colorArr[7], remap( u_offset[6], u_offset[7], color.a ) );
+			} else if (color.a <= u_offset[8]) {
+				color_ = mix( u_colorArr[7], u_colorArr[8], remap( u_offset[7], u_offset[8], color.a ) );
+			} else if (color.a <= u_offset[9]) {
+				color_ = mix( u_colorArr[8], u_colorArr[9], remap( u_offset[8], u_offset[9], color.a ) );
+			} else if (color.a <= u_offset[10]) {
+				color_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], color.a ) );
+			}
+			color_.a = color.a - (1.0 - u_opacity);
+			if (color_.a < 0.0) {
+				color_.a = 0.0;
+			}
+			gl_FragColor = color_;
+		}
+	}`;
 var ColorvertexShader = `
-						attribute vec2 a_texCoord;
-						varying vec2 v_texCoord;
-						void main() {
-							vec2 clipSpace = a_texCoord * 2.0 - 1.0;
-							gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-							v_texCoord = a_texCoord;
-						}
-			`;
+	attribute vec2 a_texCoord;
+	varying vec2 v_texCoord;
+	void main() {
+		vec2 clipSpace = a_texCoord * 2.0 - 1.0;
+		gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+		v_texCoord = a_texCoord;
+	}`;
 
 function Heatmap (context, config = {}) {
 	function gradientMapper (grad) {
