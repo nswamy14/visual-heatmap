@@ -1,5 +1,5 @@
 {
-  "name": "Visual Heatmap",
+  "name": "Visual-Heatmap",
   "version": "1.0.0",
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
   "main": "main.js",
