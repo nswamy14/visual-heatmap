@@ -30,8 +30,10 @@ var GradvertexShader = `
 	void main() {
 		vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
 		vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
-		zeroToTwo = zeroToTwo * u_zoom;
-		zeroToTwo = rotation(zeroToTwo, u_angle);
+			zeroToTwo = zeroToTwo / u_zoom;
+		if (u_angle != 0.0) {
+			zeroToTwo = rotation(zeroToTwo, u_angle);
+		}
 		gl_Position = vec4(zeroToTwo , 0, 1);
 		gl_PointSize = u_size * u_density;
 		v_i = a_intensity;
@@ -342,10 +344,10 @@ function Heatmap (context, config = {}) {
 		ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom);
 		ctx.uniform1f(this.gradShadOP.uniform.u_angle, this.angle);
 		ctx.uniform1f(this.gradShadOP.uniform.u_density, this.ratio);
-		
 		ctx.uniform1f(this.gradShadOP.uniform.u_max, this.max);
 		ctx.uniform1f(this.gradShadOP.uniform.u_size, this.size);
 		ctx.uniform1f(this.gradShadOP.uniform.u_blurr, this.blurr);
+		
 		this.gradShadOP.attr.forEach(function (d) {
 			ctx.bindBuffer(d.bufferType, d.buffer);
 			ctx.bufferData(d.bufferType, d.data, d.drawType);
