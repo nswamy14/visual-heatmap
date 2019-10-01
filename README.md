@@ -13,7 +13,7 @@ Visual Heatmap is based on advanced graphical rendering context - WebGL/Shaders.
 
 If npm
 ```
-npm install Visual-Heatmap --save
+npm i visual-heatmap --save
 ```
 Download source code from below links
 
