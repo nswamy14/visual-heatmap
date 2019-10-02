@@ -19,13 +19,13 @@ Download source code from below links
 
 * [visualHeatmap.min.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.min.js)
 * [visualHeatmap.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.js)
-* [visualHeatmap.esm.browser.js](https://raw.githubusercontent.com/nswamy14/Visual-Heatmap/master/dist/visualHeatmap.esm.browser.js)
+* [visualHeatmap.esm.browser.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.esm.browser.js)
 
 Visual-Heatmap is written in ES6 Modules. To import use below syntax
 
 Importing everthing into namespace
 ```
-import * from 'Visual-Heatmap'
+import Heatmap from 'visual-heatmap'
 ```
 
 ## VisualHeatmapJs - API
@@ -56,39 +56,61 @@ let instance = Heatmap('#canvas', {
     });
 ```
 #### ContainerId
-Query string which identifies container.
+CSS Query selector which identifies container.
 
 #### Config
-Input to the Heatmap layer with below info.
+Object with config properties.
 
-**Size :** Raius of the data point, in pixels.
+**size :** Radius of the data point, in pixels.
 
-**Max :** Max data Value for relative pixel grading.
+**max :** Max data Value for relative gradient computation.
 
-**blurr :**
+**blurr :** Blurr factor.
 
-**gradient :** Color Gradient, array of values with color and offset.
+**opacity :** Opacity factor.
 
-#### instance.renderData()
-Accepts array of data points with 'x', 'y' and 'value'.
+**rotationAngle :** Rotation angle.
+
+**translate :** translate vector [x, y].
+
+**zoom :** Zoom Factor.
+
+**gradient :** Color Gradient, array of objects with color value and offset.
+
+#### instance.renderData([])
+Accepts array of data points with 'x', 'y' and 'value'.  [Demo](https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html)
+
+#### instance.addData([], transformationIntactflag);
+Accepts array of data points with 'x', 'y' and 'value' and a flag to specify to apply existing canvas tranformations on the newly added data points.
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 #### instance.setMax()
-To set max data value, for relative calculations.
+To set max data value, for relative gradient calculations.
 
 #### instance.setTranslate()
+Api to perform translate transformation on the canvas. Accepts array[x, y] as an input.
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 #### instance.setZoom()
+Api to perform zoom transformation on the canvas. Accepts float value as an input.
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 #### instance.setRotationAngle()
+Api to perform rotation transformation on the canvas. Accepts angle in radians.
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 #### instance.setSize()
+Api to set point radius. Accepts float value as an input.
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 #### instance.setBlurr()
+Api to set Blurr factor. Accepts float value as an input.
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 #### instance.setOpacity()
+Api to set Opacity factor. Accepts float value as an input.
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 #### instance.clear()
-
-
-
+Api to clear canvas.
 
