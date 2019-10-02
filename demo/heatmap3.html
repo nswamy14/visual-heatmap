@@ -19,6 +19,7 @@ let instance = Heatmap('#canvas', {
         size: 100.0,
         max: 100,
         blurr: 1.0,
+        zoom: 1.0,
         gradient: [{
             color: [0, 0, 255, 1.0],
             offset: 0
@@ -67,7 +68,7 @@ let instance = Heatmap('#canvas', {
     gui.add( params, 'transalteY', -instance.height, instance.height ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);
     } );
-    gui.add( params, 'zoom', 0, 2 ).onChange( function () {
+    gui.add( params, 'zoom', 0, 10 ).onChange( function () {
         instance.setZoom(params.zoom);
     } );
     gui.add( params, 'rotationAngle', 0, Math.PI * 2 ).onChange( function () {
@@ -75,16 +76,20 @@ let instance = Heatmap('#canvas', {
     } );
 
     var dataPush = true;
-    document.addEventListener("mousemove", function(e){
+    document.getElementById('canvas').addEventListener("mousemove", function(e){
         if (dataPush) {
-            data.push({
+            // data.push({
+            //     x: e.x,
+            //     y: e.y,
+            //     value: 20
+            // });
+            instance.addData([{
                 x: e.x,
                 y: e.y,
                 value: 20
-            });
-            instance.renderData(data);
+            }], true);
             dataPush = false;
-            setTimeout(idleFlag, 30);
+            setTimeout(idleFlag, 10);
         }
     });
 

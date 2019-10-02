@@ -1,5 +1,5 @@
 {
-  "name": "Visual-Heatmap",
+  "name": "visual-heatmap",
   "version": "1.0.0",
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
   "main": "main.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nswamy14/Visual-Heatmap.git"
+    "url": "git+https://github.com/nswamy14/visual-heatmap.git"
   },
   "keywords": [
     "WebGL",
@@ -22,9 +22,9 @@
   "author": "Narayana Swamy",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/nswamy14/Visual-Heatmap/issues"
+    "url": "https://github.com/nswamy14/visual-heatmap/issues"
   },
-  "homepage": "https://github.com/nswamy14/Visual-Heatmap#readme",
+  "homepage": "https://github.com/nswamy14/visual-heatmap#readme",
   "devDependencies": {
     "eslint": "^6.4.0",
     "eslint-config-standard": "^14.1.0",
