@@ -21,7 +21,7 @@
 	}
 
 	var GradfragmentShader = "\n\tprecision mediump float;\n\tuniform float u_max;\n\tuniform float u_blurr;\n\tvarying float v_i;\n\tvoid main() {\n\t\tfloat r = 0.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy);\n\t\tif(r > 1.0) { discard; } else { gl_FragColor = vec4(0, 0, 0, (v_i/u_max) * (u_blurr) * (1.0 - sqrt(r))); }\n\t}";
-	var GradvertexShader = "\n\tattribute vec2 a_position; attribute float a_intensity; uniform float u_size; uniform vec2 u_resolution; uniform vec2 u_translate; uniform float u_zoom; uniform float u_angle; uniform float u_density;\n\tvarying float v_i;\n\n\tvec2 rotation(vec2 v, float a) {\n\t\tfloat s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); \n\t\treturn m * v;\n\t}\n\n\tvoid main() {\n\t\tvec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);\n\t\tvec2 zeroToTwo = zeroToOne * 2.0 - 1.0;\n\t\tzeroToTwo = zeroToTwo * u_zoom;\n\t\tzeroToTwo = rotation(zeroToTwo, u_angle);\n\t\tgl_Position = vec4(zeroToTwo , 0, 1);\n\t\tgl_PointSize = u_size * u_density;\n\t\tv_i = a_intensity;\n\t}";
+	var GradvertexShader = "\n\tattribute vec2 a_position; attribute float a_intensity; uniform float u_size; uniform vec2 u_resolution; uniform vec2 u_translate; uniform float u_zoom; uniform float u_angle; uniform float u_density;\n\tvarying float v_i;\n\n\tvec2 rotation(vec2 v, float a) {\n\t\tfloat s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); \n\t\treturn m * v;\n\t}\n\n\tvoid main() {\n\t\tvec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);\n\t\tvec2 zeroToTwo = zeroToOne * 2.0 - 1.0;\n\t\tzeroToTwo = zeroToTwo / u_zoom;\n\t\tif (u_angle != 0.0) {\n\t\t\tzeroToTwo = rotation(zeroToTwo, u_angle);\n\t\t}\n\t\tgl_Position = vec4(zeroToTwo , 0, 1);\n\t\tgl_PointSize = u_size * u_density;\n\t\tv_i = a_intensity;\n\t}";
 
 	var ColorfragmentShader = "\n\tprecision mediump float;\n\tvarying vec2 v_texCoord;\n\tuniform sampler2D u_framebuffer; uniform vec4 u_colorArr[100]; uniform float u_colorCount; uniform float u_opacity; uniform float u_offset[100];\n\n\tfloat remap ( float minval, float maxval, float curval ) {\n\t\treturn ( curval - minval ) / ( maxval - minval );\n\t}\n\n\tvoid main() {\n\t\tvec4 color = vec4(texture2D(u_framebuffer, v_texCoord.xy));\n\t\tif (color.a == 0.0) {\n\t\t\tdiscard;\n\t\t} else {\n\t\t\tvec4 color_;\n\t\t\tfloat fract = 1.0 / (u_colorCount - 1.0);\n\t\t\tif (color.a <= u_offset[1]) {\n\t\t\t\tcolor_ = mix( u_colorArr[0], u_colorArr[1], remap( u_offset[0], u_offset[1], color.a ) );\n\t\t\t} else if (color.a <= u_offset[2]) {\n\t\t\t\tcolor_ = mix( u_colorArr[1], u_colorArr[2], remap( u_offset[1], u_offset[2], color.a ) );\n\t\t\t} else if (color.a <= u_offset[3]) {\n\t\t\t\tcolor_ = mix( u_colorArr[2], u_colorArr[3], remap( u_offset[2], u_offset[3], color.a ) );\n\t\t\t} else if (color.a <= u_offset[4]) {\n\t\t\t\tcolor_ = mix( u_colorArr[3], u_colorArr[4], remap( u_offset[3], u_offset[4], color.a ) );\n\t\t\t} else if (color.a <= u_offset[5]) {\n\t\t\t\tcolor_ = mix( u_colorArr[4], u_colorArr[5], remap( u_offset[4], u_offset[5], color.a ) );\n\t\t\t} else if (color.a <= u_offset[6]) {\n\t\t\t\tcolor_ = mix( u_colorArr[5], u_colorArr[6], remap( u_offset[5], u_offset[6], color.a ) );\n\t\t\t} else if (color.a <= u_offset[7]) {\n\t\t\t\tcolor_ = mix( u_colorArr[6], u_colorArr[7], remap( u_offset[6], u_offset[7], color.a ) );\n\t\t\t} else if (color.a <= u_offset[8]) {\n\t\t\t\tcolor_ = mix( u_colorArr[7], u_colorArr[8], remap( u_offset[7], u_offset[8], color.a ) );\n\t\t\t} else if (color.a <= u_offset[9]) {\n\t\t\t\tcolor_ = mix( u_colorArr[8], u_colorArr[9], remap( u_offset[8], u_offset[9], color.a ) );\n\t\t\t} else if (color.a <= u_offset[10]) {\n\t\t\t\tcolor_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], color.a ) );\n\t\t\t}\n\t\t\tcolor_.a = color.a - (1.0 - u_opacity);\n\t\t\tif (color_.a < 0.0) {\n\t\t\t\tcolor_.a = 0.0;\n\t\t\t}\n\t\t\tgl_FragColor = color_;\n\t\t}\n\t}";
 	var ColorvertexShader = "\n\tattribute vec2 a_texCoord;\n\tvarying vec2 v_texCoord;\n\tvoid main() {\n\t\tvec2 clipSpace = a_texCoord * 2.0 - 1.0;\n\t\tgl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);\n\t\tv_texCoord = a_texCoord;\n\t}";
@@ -145,6 +145,7 @@
 			};
 		}
 
+		var ratio;
 		var buffer;
 		var posVec = [];
 		var buffer2;
@@ -181,7 +182,7 @@
 				antialias: true,
 				alpha: true
 			});
-			var ratio = getPixlRatio(ctx);
+			ratio = getPixlRatio(ctx);
 			ctx.clearColor(0, 0, 0, 0);
 			ctx.enable(ctx.BLEND);
 			ctx.blendEquation(ctx.FUNC_ADD);
@@ -213,6 +214,8 @@
 			this.angle = (config.rotationAngle ? config.rotationAngle : 0.0);
 			this.opacity = config.opacity ? config.opacity : 1.0;
 			this.ratio = ratio;
+
+			this.rawData = [];
 
 			ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
 		}
@@ -260,8 +263,44 @@
 			this.render(this.exData);
 		};
 
+		Chart.prototype.addData = function (data, inranformationIntact) {
+			var widFat = this.width / (2 * ratio);
+			var heiFat = this.height / (2 * ratio);
+			for (var i = 0; i < data.length; i++) {
+				if (inranformationIntact) {
+					data[i].x -= widFat;
+					data[i].y -= heiFat;
+
+					data[i].x /= widFat;
+					data[i].y /= heiFat;
+					data[i].x = data[i].x * (this.zoom);
+					data[i].y = data[i].y * (this.zoom);
+
+					if (this.angle !== 0.0) {
+						var c = Math.cos(this.angle);
+						var s = Math.sin(this.angle);
+						var x = data[i].x;
+						var y = data[i].y;
+						data[i].x = (c * x) + (-s * y);
+						data[i].y = (s * x) + (c * y);
+					}
+
+					data[i].x *= widFat;
+					data[i].y *= heiFat;
+					data[i].x += widFat;
+					data[i].y += heiFat;
+
+					data[i].x -= (this.translate[0]);
+					data[i].y -= (this.translate[1]);
+				}
+				this.rawData.push(data[i]);
+			}
+			this.renderData(this.rawData);
+		};
+
 		Chart.prototype.renderData = function (data) {
 			var exData = extractData(data);
+			this.rawData = data;
 			this.render(exData);
 		};
 
@@ -277,13 +316,13 @@
 
 			ctx.uniform2fv(this.gradShadOP.uniform.u_resolution, new Float32Array([this.width, this.height]));
 			ctx.uniform2fv(this.gradShadOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
-			ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom);
+			ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
 			ctx.uniform1f(this.gradShadOP.uniform.u_angle, this.angle);
 			ctx.uniform1f(this.gradShadOP.uniform.u_density, this.ratio);
-			
 			ctx.uniform1f(this.gradShadOP.uniform.u_max, this.max);
 			ctx.uniform1f(this.gradShadOP.uniform.u_size, this.size);
 			ctx.uniform1f(this.gradShadOP.uniform.u_blurr, this.blurr);
+			
 			this.gradShadOP.attr.forEach(function (d) {
 				ctx.bindBuffer(d.bufferType, d.buffer);
 				ctx.bufferData(d.bufferType, d.data, d.drawType);

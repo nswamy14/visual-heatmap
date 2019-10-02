@@ -30,7 +30,7 @@ var GradvertexShader = `
 	void main() {
 		vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
 		vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
-			zeroToTwo = zeroToTwo / u_zoom;
+		zeroToTwo = zeroToTwo / u_zoom;
 		if (u_angle != 0.0) {
 			zeroToTwo = rotation(zeroToTwo, u_angle);
 		}
@@ -209,9 +209,10 @@ function Heatmap (context, config = {}) {
 		};
 	}
 
-	var buffer;
-	var posVec = [];
-	var buffer2;
+	let ratio;
+	let buffer;
+	let posVec = [];
+	let buffer2;
 	let rVec = [];
 	let pLen = 0;
 	function extractData (data) {
@@ -245,7 +246,7 @@ function Heatmap (context, config = {}) {
 			antialias: true,
 			alpha: true
 		});
-		const ratio = getPixlRatio(ctx);
+		ratio = getPixlRatio(ctx);
 		ctx.clearColor(0, 0, 0, 0);
 		ctx.enable(ctx.BLEND);
 		ctx.blendEquation(ctx.FUNC_ADD);
@@ -277,6 +278,8 @@ function Heatmap (context, config = {}) {
 		this.angle = (config.rotationAngle ? config.rotationAngle : 0.0);
 		this.opacity = config.opacity ? config.opacity : 1.0;
 		this.ratio = ratio;
+
+		this.rawData = [];
 
 		ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
 	}
@@ -324,8 +327,44 @@ function Heatmap (context, config = {}) {
 		this.render(this.exData);
 	};
 
+	Chart.prototype.addData = function (data, inranformationIntact) {
+		const widFat = this.width / (2 * ratio);
+		const heiFat = this.height / (2 * ratio);
+		for (let i = 0; i < data.length; i++) {
+			if (inranformationIntact) {
+				data[i].x -= widFat;
+				data[i].y -= heiFat;
+
+				data[i].x /= widFat;
+				data[i].y /= heiFat;
+				data[i].x = data[i].x * (this.zoom);
+				data[i].y = data[i].y * (this.zoom);
+
+				if (this.angle !== 0.0) {
+					const c = Math.cos(this.angle);
+					const s = Math.sin(this.angle);
+					const x = data[i].x;
+					const y = data[i].y;
+					data[i].x = (c * x) + (-s * y);
+					data[i].y = (s * x) + (c * y);
+				}
+
+				data[i].x *= widFat;
+				data[i].y *= heiFat;
+				data[i].x += widFat;
+				data[i].y += heiFat;
+
+				data[i].x -= (this.translate[0]);
+				data[i].y -= (this.translate[1]);
+			}
+			this.rawData.push(data[i]);
+		}
+		this.renderData(this.rawData);
+	};
+
 	Chart.prototype.renderData = function (data) {
 		const exData = extractData(data);
+		this.rawData = data;
 		this.render(exData);
 	};
 
@@ -341,7 +380,7 @@ function Heatmap (context, config = {}) {
 
 		ctx.uniform2fv(this.gradShadOP.uniform.u_resolution, new Float32Array([this.width, this.height]));
 		ctx.uniform2fv(this.gradShadOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
-		ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom);
+		ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
 		ctx.uniform1f(this.gradShadOP.uniform.u_angle, this.angle);
 		ctx.uniform1f(this.gradShadOP.uniform.u_density, this.ratio);
 		ctx.uniform1f(this.gradShadOP.uniform.u_max, this.max);
