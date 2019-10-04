@@ -73,7 +73,7 @@ let instance = Heatmap('#canvas', {
     gui.add( params, 'transalteY', -instance.height, instance.height ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);
     } );
-    gui.add( params, 'zoom', 0, 50 ).onChange( function () {
+    gui.add( params, 'zoom', 0, 2 ).onChange( function () {
         instance.setZoom(params.zoom);
     } );
     gui.add( params, 'rotationAngle', 0, Math.PI * 2 ).onChange( function () {
