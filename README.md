@@ -55,27 +55,23 @@ let instance = Heatmap('#containerId', {
         }]
     });
 ```
-#### ContainerId
-CSS Query selector which identifies container.
+***ContainerId*** CSS Query selector which identifies container.
 
-#### Config
+**Config**
 Object with config properties.
+```
+{
+size : Radius of the data point, in pixels.
+max : Max data Value for relative gradient computation.
+blurr : Blurr factor.
+opacity : Opacity factor.
+rotationAngle : Rotation angle.
+translate : translate vector [x, y].
+zoom : Zoom Factor.
+gradient : Color Gradient, array of objects with color value and offset.
+}
+```
 
-**size :** Radius of the data point, in pixels.
-
-**max :** Max data Value for relative gradient computation.
-
-**blurr :** Blurr factor.
-
-**opacity :** Opacity factor.
-
-**rotationAngle :** Rotation angle.
-
-**translate :** translate vector [x, y].
-
-**zoom :** Zoom Factor.
-
-**gradient :** Color Gradient, array of objects with color value and offset.
 
 #### instance.renderData([])
 Accepts an array of data points with 'x', 'y' and 'value'.  [Demo](https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html)
