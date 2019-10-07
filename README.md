@@ -55,7 +55,7 @@ let instance = Heatmap('#containerId', {
         }]
     });
 ```
-***ContainerId*** CSS Query selector which identifies container.
+**ContainerId** CSS Query selector which identifies container.
 
 **Config**
 Object with config properties.
@@ -73,40 +73,40 @@ gradient : Color Gradient, array of objects with color value and offset.
 ```
 
 
-#### instance.renderData([])
+### instance.renderData([])
 Accepts an array of data points with 'x', 'y' and 'value'.  [Demo](https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html)
 
-#### instance.addData([], transformationIntactflag);
+### instance.addData([], transformationIntactflag);
 Accepts an array of data points with 'x', 'y' and 'value' and a flag to specify to apply existing canvas transformations on the newly added data points.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setMax()
+### instance.setMax()
 To set max data value, for relative gradient calculations.
 
-#### instance.setTranslate()
+### instance.setTranslate()
 Api to perform translate transformation on the canvas. Accepts array[x, y] as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setZoom()
+### instance.setZoom()
 Api to perform zoom transformation on the canvas. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setRotationAngle()
+### instance.setRotationAngle()
 Api to perform rotation transformation on the canvas. Accepts angle in radians.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setSize()
+### instance.setSize()
 Api to set point radius. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setBlurr()
+### instance.setBlurr()
 Api to set Blurr factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setOpacity()
+### instance.setOpacity()
 Api to set Opacity factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.clear()
+### instance.clear()
 Api to clear canvas.
 
