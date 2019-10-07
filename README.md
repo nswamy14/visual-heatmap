@@ -33,7 +33,7 @@ import Heatmap from 'visual-heatmap'
 ### visualHeatmap()
 visualHeatmap provides a API to create context **WebGL**. API accepts containerId and config as an input. A layer will be created under the provided Div #containerId.
 ```Javascript
-let instance = Heatmap('#canvas', {
+let instance = Heatmap('#containerId', {
         size: 30.0,
         max: 100,
         blurr: 1.0,
@@ -78,10 +78,10 @@ Object with config properties.
 **gradient :** Color Gradient, array of objects with color value and offset.
 
 #### instance.renderData([])
-Accepts array of data points with 'x', 'y' and 'value'.  [Demo](https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html)
+Accepts an array of data points with 'x', 'y' and 'value'.  [Demo](https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html)
 
 #### instance.addData([], transformationIntactflag);
-Accepts array of data points with 'x', 'y' and 'value' and a flag to specify to apply existing canvas tranformations on the newly added data points.
+Accepts an array of data points with 'x', 'y' and 'value' and a flag to specify to apply existing canvas transformations on the newly added data points.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 #### instance.setMax()
