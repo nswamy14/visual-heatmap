@@ -1,5 +1,5 @@
 # Visual-Heatmap Js
-Open source javascript module for high performance, large scale heatmap rendering.
+Open source javascript module for rendering high performance, large scale heatmap.
 
 Visual Heatmap is based on advanced graphical rendering context - WebGL/Shaders. It can render 500,000+ data points with a good framerate.
 
