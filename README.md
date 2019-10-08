@@ -1,5 +1,5 @@
 # Visual-Heatmap Js
-Open source javascript module for high performance, large scale heatmap rendering.
+Open source javascript module for rendering high performance, large scale heatmap.
 
 Visual Heatmap is based on advanced graphical rendering context - WebGL/Shaders. It can render 500,000+ data points with a good framerate.
 
@@ -33,7 +33,7 @@ import Heatmap from 'visual-heatmap'
 ### visualHeatmap()
 visualHeatmap provides a API to create context **WebGL**. API accepts containerId and config as an input. A layer will be created under the provided Div #containerId.
 ```Javascript
-let instance = Heatmap('#canvas', {
+let instance = Heatmap('#containerId', {
         size: 30.0,
         max: 100,
         blurr: 1.0,
@@ -55,62 +55,58 @@ let instance = Heatmap('#canvas', {
         }]
     });
 ```
-#### ContainerId
-CSS Query selector which identifies container.
+**ContainerId** CSS Query selector which identifies container.
 
-#### Config
+**Config**
 Object with config properties.
+```
+{
+size : Radius of the data point, in pixels.
+max : Max data Value for relative gradient computation.
+blurr : Blurr factor.
+opacity : Opacity factor.
+rotationAngle : Rotation angle.
+translate : translate vector [x, y].
+zoom : Zoom Factor.
+gradient : Color Gradient, array of objects with color value and offset.
+}
+```
 
-**size :** Radius of the data point, in pixels.
 
-**max :** Max data Value for relative gradient computation.
+### instance.renderData([])
+Accepts an array of data points with 'x', 'y' and 'value'.  [Demo](https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html)
 
-**blurr :** Blurr factor.
-
-**opacity :** Opacity factor.
-
-**rotationAngle :** Rotation angle.
-
-**translate :** translate vector [x, y].
-
-**zoom :** Zoom Factor.
-
-**gradient :** Color Gradient, array of objects with color value and offset.
-
-#### instance.renderData([])
-Accepts array of data points with 'x', 'y' and 'value'.  [Demo](https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html)
-
-#### instance.addData([], transformationIntactflag);
-Accepts array of data points with 'x', 'y' and 'value' and a flag to specify to apply existing canvas tranformations on the newly added data points.
+### instance.addData([], transformationIntactflag);
+Accepts an array of data points with 'x', 'y' and 'value' and a flag to specify to apply existing canvas transformations on the newly added data points.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setMax()
+### instance.setMax()
 To set max data value, for relative gradient calculations.
 
-#### instance.setTranslate()
+### instance.setTranslate()
 Api to perform translate transformation on the canvas. Accepts array[x, y] as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setZoom()
+### instance.setZoom()
 Api to perform zoom transformation on the canvas. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setRotationAngle()
+### instance.setRotationAngle()
 Api to perform rotation transformation on the canvas. Accepts angle in radians.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setSize()
+### instance.setSize()
 Api to set point radius. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setBlurr()
+### instance.setBlurr()
 Api to set Blurr factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.setOpacity()
+### instance.setOpacity()
 Api to set Opacity factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-#### instance.clear()
+### instance.clear()
 Api to clear canvas.
 
