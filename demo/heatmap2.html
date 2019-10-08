@@ -37,7 +37,7 @@ let instance = Heatmap('#canvas', {
     var gui = new dat.GUI();
     var Params = function() {
         this.points = 10000;
-        this.pointSize = 30;
+        this.size = 50;
         this.opacity = 1.0;
         this.blurr = 1.0;
         this.transalteX = 0;
@@ -53,8 +53,8 @@ let instance = Heatmap('#canvas', {
         data = generateData(params.points);
         instance.renderData(data);
     } );
-	gui.add( params, 'pointSize', 1, 100 ).onChange( function () {
-        instance.setSize(params.pointSize);
+	gui.add( params, 'size', 1, 100 ).onChange( function () {
+        instance.setSize(params.size);
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
         instance.setOpacity(params.opacity);
@@ -68,7 +68,7 @@ let instance = Heatmap('#canvas', {
     gui.add( params, 'transalteY', -instance.height, instance.height ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);
     } );
-    gui.add( params, 'zoom', 0, 50 ).onChange( function () {
+    gui.add( params, 'zoom', 0, 2 ).onChange( function () {
         instance.setZoom(params.zoom);
     } );
     gui.add( params, 'rotationAngle', 0, Math.PI * 2 ).onChange( function () {
@@ -81,8 +81,8 @@ let instance = Heatmap('#canvas', {
         for (let i = 0; i < count; i++) {
             let val = Math.random() * 100
             data.push({
-                x: Math.random() * instance.width,
-                y: Math.random() * instance.height,
+                x: Math.random() * instance.width * 0.5,
+                y: Math.random() * instance.height * 0.5,
                 velX: random(-0.5, 0.25),
                 velY: random(-0.5, 0.25),
                 value: val

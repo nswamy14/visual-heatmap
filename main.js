@@ -271,7 +271,7 @@ function Heatmap (context, config = {}) {
 		this.fbo = ctx.createFramebuffer();
 
 		this.size = config.size ? config.size : 20.0;
-		this.max = config.max;
+		this.max = config.max ? config.max : Infinity;
 		this.blurr = config.blurr ? config.blurr : 1.0;
 		this.translate = (config.translate && config.translate.length === 2) ? config.translate : [0, 0];
 		this.zoom = (config.zoom ? config.zoom : 1.0);
@@ -285,7 +285,18 @@ function Heatmap (context, config = {}) {
 	}
 
 	Chart.prototype.resize = function () {
+		const height = this.dom.clientHeight;
+		const width = this.dom.clientWidth;
+		this.layer.setAttribute('height', height * ratio);
+		this.layer.setAttribute('width', width * ratio);
+		this.layer.style.height = `${height}px`;
+		this.layer.style.width = `${width}px`;
+		this.width = width * ratio;
+		this.height = height * ratio;
+		this.ctx.viewport(0, 0, this.width, this.height);
 
+		/* Perform update */
+		this.render(this.exData);
 	};
 
 	Chart.prototype.clear = function () {
@@ -327,35 +338,11 @@ function Heatmap (context, config = {}) {
 		this.render(this.exData);
 	};
 
-	Chart.prototype.addData = function (data, inranformationIntact) {
-		const widFat = this.width / (2 * ratio);
-		const heiFat = this.height / (2 * ratio);
+	Chart.prototype.addData = function (data, transIntactFlag) {
+		let self = this;
 		for (let i = 0; i < data.length; i++) {
-			if (inranformationIntact) {
-				data[i].x -= widFat;
-				data[i].y -= heiFat;
-
-				data[i].x /= widFat;
-				data[i].y /= heiFat;
-				data[i].x = data[i].x * (this.zoom);
-				data[i].y = data[i].y * (this.zoom);
-
-				if (this.angle !== 0.0) {
-					const c = Math.cos(this.angle);
-					const s = Math.sin(this.angle);
-					const x = data[i].x;
-					const y = data[i].y;
-					data[i].x = (c * x) + (-s * y);
-					data[i].y = (s * x) + (c * y);
-				}
-
-				data[i].x *= widFat;
-				data[i].y *= heiFat;
-				data[i].x += widFat;
-				data[i].y += heiFat;
-
-				data[i].x -= (this.translate[0]);
-				data[i].y -= (this.translate[1]);
+			if (transIntactFlag) {
+				transCoOr.call(self, data[i]);
 			}
 			this.rawData.push(data[i]);
 		}
@@ -425,6 +412,36 @@ function Heatmap (context, config = {}) {
 
 		ctx.drawArrays(ctx.TRIANGLES, 0, 6);
 	};
+
+	function transCoOr (data) {
+		const widFat = this.width / (2 * ratio);
+		const heiFat = this.height / (2 * ratio);
+		data.x -= widFat;
+		data.y -= heiFat;
+
+		data.x /= widFat;
+		data.y /= heiFat;
+		data.x = data.x * (this.zoom);
+		data.y = data.y * (this.zoom);
+
+		if (this.angle !== 0.0) {
+			const c = Math.cos(this.angle);
+			const s = Math.sin(this.angle);
+			const x = data.x;
+			const y = data.y;
+			data.x = (c * x) + (-s * y);
+			data.y = (s * x) + (c * y);
+		}
+
+		data.x *= widFat;
+		data.y *= heiFat;
+		data.x += widFat;
+		data.y += heiFat;
+
+		data.x -= (this.translate[0]);
+		data.y -= (this.translate[1]);
+	}
+
 	return new Chart(context, config);
 }
 

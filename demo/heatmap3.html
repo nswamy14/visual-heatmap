@@ -6,7 +6,7 @@
 </head>
 <body style="height: 100%">
 
-<div id="canvas" style="height: 100%;width:100%;background: white;" >
+<div id="canvas" style="height: 100%;width:100%;background: black;" >
 </div>
 <script type="text/javascript" src="./dat.gui.min.js"></script>
 
@@ -41,7 +41,7 @@ let instance = Heatmap('#canvas', {
     var gui = new dat.GUI();
     var Params = function() {
         this.points = 10000;
-        this.pointSize = 30;
+        this.size = 100;
         this.opacity = 1.0;
         this.blurr = 1.0;
         this.transalteX = 0;
@@ -53,8 +53,8 @@ let instance = Heatmap('#canvas', {
     };
 
     var params = new Params();
-	gui.add( params, 'pointSize', 1, 100 ).onChange( function () {
-        instance.setSize(params.pointSize);
+	gui.add( params, 'size', 1, 100 ).onChange( function () {
+        instance.setSize(params.size);
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
         instance.setOpacity(params.opacity);
@@ -68,7 +68,7 @@ let instance = Heatmap('#canvas', {
     gui.add( params, 'transalteY', -instance.height, instance.height ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);
     } );
-    gui.add( params, 'zoom', 0, 10 ).onChange( function () {
+    gui.add( params, 'zoom', 0, 2 ).onChange( function () {
         instance.setZoom(params.zoom);
     } );
     gui.add( params, 'rotationAngle', 0, Math.PI * 2 ).onChange( function () {
@@ -78,18 +78,13 @@ let instance = Heatmap('#canvas', {
     var dataPush = true;
     document.getElementById('canvas').addEventListener("mousemove", function(e){
         if (dataPush) {
-            // data.push({
-            //     x: e.x,
-            //     y: e.y,
-            //     value: 20
-            // });
             instance.addData([{
                 x: e.x,
                 y: e.y,
-                value: 20
+                value: 10
             }], true);
             dataPush = false;
-            setTimeout(idleFlag, 10);
+            setTimeout(idleFlag, 30);
         }
     });
 
