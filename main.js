@@ -18,6 +18,7 @@ var GradfragmentShader = `
 		float r = 0.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy);
 		if(r > 1.0) { discard; } else { gl_FragColor = vec4(0, 0, 0, (v_i/u_max) * (u_blurr) * (1.0 - sqrt(r))); }
 	}`;
+
 var GradvertexShader = `
 	attribute vec2 a_position; attribute float a_intensity; uniform float u_size; uniform vec2 u_resolution; uniform vec2 u_translate; uniform float u_zoom; uniform float u_angle; uniform float u_density;
 	varying float v_i;
@@ -83,6 +84,7 @@ var ColorfragmentShader = `
 			gl_FragColor = color_;
 		}
 	}`;
+	
 var ColorvertexShader = `
 	attribute vec2 a_texCoord;
 	varying vec2 v_texCoord;
