@@ -23,14 +23,28 @@
 	var GradfragmentShader = `
 	precision mediump float;
 	uniform float u_max;
-	uniform float u_blurr;
+	uniform float u_blur;
 	varying float v_i;
 	void main() {
-		float r = 0.0; vec2 cxy = 2.0 * gl_PointCoord - 1.0; r = dot(cxy, cxy);
-		if(r > 1.0) { discard; } else { gl_FragColor = vec4(0, 0, 0, (v_i/u_max) * (u_blurr) * (1.0 - sqrt(r))); }
+		float r = 0.0; 
+		vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+		r = dot(cxy, cxy);
+		if(r > 1.0) {
+			discard; 
+		} else { 
+			gl_FragColor = vec4(0, 0, 0, (v_i/u_max) * (u_blur) * (1.0 - sqrt(r * r * r))); 
+		}
 	}`;
+
 	var GradvertexShader = `
-	attribute vec2 a_position; attribute float a_intensity; uniform float u_size; uniform vec2 u_resolution; uniform vec2 u_translate; uniform float u_zoom; uniform float u_angle; uniform float u_density;
+	attribute vec2 a_position;
+	attribute float a_intensity;
+	uniform float u_size;
+	uniform vec2 u_resolution;
+	uniform vec2 u_translate; 
+	uniform float u_zoom; 
+	uniform float u_angle; 
+	uniform float u_density;
 	varying float v_i;
 
 	vec2 rotation(vec2 v, float a) {
@@ -87,13 +101,15 @@
 			} else if (color.a <= u_offset[10]) {
 				color_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], color.a ) );
 			}
-			color_.a = color.a - (1.0 - u_opacity);
+			// color_.a = color.a - (1.0 - u_opacity);
+			color_.a = color_.a - (1.0 - u_opacity);
 			if (color_.a < 0.0) {
 				color_.a = 0.0;
 			}
 			gl_FragColor = color_;
 		}
 	}`;
+
 	var ColorvertexShader = `
 	attribute vec2 a_texCoord;
 	varying vec2 v_texCoord;
@@ -175,7 +191,7 @@
 					u_resolution: ctx.getUniformLocation(program, 'u_resolution'),
 					u_max: ctx.getUniformLocation(program, 'u_max'),
 					u_size: ctx.getUniformLocation(program, 'u_size'),
-					u_blurr: ctx.getUniformLocation(program, 'u_blurr'),
+					u_blur: ctx.getUniformLocation(program, 'u_blur'),
 					u_translate: ctx.getUniformLocation(program, 'u_translate'),
 					u_zoom: ctx.getUniformLocation(program, 'u_zoom'),
 					u_angle: ctx.getUniformLocation(program, 'u_angle'),
@@ -258,6 +274,7 @@
 				alpha: true
 			});
 			ratio = getPixlRatio(ctx);
+			console.log(ratio);
 			ctx.clearColor(0, 0, 0, 0);
 			ctx.enable(ctx.BLEND);
 			ctx.blendEquation(ctx.FUNC_ADD);
@@ -283,7 +300,7 @@
 
 			this.size = config.size ? config.size : 20.0;
 			this.max = config.max ? config.max : Infinity;
-			this.blurr = config.blurr ? config.blurr : 1.0;
+			this.blur = config.blur ? config.blur : 1.0;
 			this.translate = (config.translate && config.translate.length === 2) ? config.translate : [0, 0];
 			this.zoom = (config.zoom ? config.zoom : 1.0);
 			this.angle = (config.rotationAngle ? config.rotationAngle : 0.0);
@@ -339,8 +356,8 @@
 			this.render(this.exData);
 		};
 
-		Chart.prototype.setBlurr = function (blurr) {
-			this.blurr = blurr !== undefined ? blurr : 1.0;
+		Chart.prototype.setBlur = function (blur) {
+			this.blur = blur !== undefined ? blur : 1.0;
 			this.render(this.exData);
 		};
 
@@ -350,6 +367,7 @@
 		};
 
 		Chart.prototype.addData = function (data, transIntactFlag) {
+			let self = this;
 			for (let i = 0; i < data.length; i++) {
 				if (transIntactFlag) {
 					transCoOr.call(self, data[i]);
@@ -382,7 +400,7 @@
 			ctx.uniform1f(this.gradShadOP.uniform.u_density, this.ratio);
 			ctx.uniform1f(this.gradShadOP.uniform.u_max, this.max);
 			ctx.uniform1f(this.gradShadOP.uniform.u_size, this.size);
-			ctx.uniform1f(this.gradShadOP.uniform.u_blurr, this.blurr);
+			ctx.uniform1f(this.gradShadOP.uniform.u_blur, this.blur);
 			
 			this.gradShadOP.attr.forEach(function (d) {
 				ctx.bindBuffer(d.bufferType, d.buffer);

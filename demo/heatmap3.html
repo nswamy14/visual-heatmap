@@ -6,13 +6,13 @@
 </head>
 <body style="height: 100%">
 
-<div id="canvas" style="height: 100%;width:100%;background: black;" >
+<div id="canvas" style="height: 100%;width:100%;background: white;" >
 </div>
 <script type="text/javascript" src="./dat.gui.min.js"></script>
 
 <script type="module">
 
-import Heatmap from './../main.js'
+import Heatmap from './../dist/visualHeatmap.esm.browser.js';
 
 let data = [];
 let instance = Heatmap('#canvas', {
@@ -21,17 +21,17 @@ let instance = Heatmap('#canvas', {
         blurr: 1.0,
         zoom: 1.0,
         gradient: [{
-            color: [0, 0, 255, 1.0],
+            color: [255, 255, 255, 1.0],
             offset: 0
         }, {
-            color: [0, 0, 255, 1.0],
+            color: [212, 225, 255, 1.0],
             offset: 0.2
         }, {
-            color: [0, 255, 0, 1.0],
+            color: [166, 255, 115, 1.0],
             offset: 0.45
         }, {
-            color: [255, 255, 0, 1.0],
-            offset: 0.85
+            color: [255, 255, 0, 0.5],
+            offset: 0.75
         }, {
             color: [255, 0, 0, 1.0],
             offset: 1.0
@@ -81,7 +81,7 @@ let instance = Heatmap('#canvas', {
             instance.addData([{
                 x: e.x,
                 y: e.y,
-                value: 10
+                value: 20
             }], true);
             dataPush = false;
             setTimeout(idleFlag, 30);
