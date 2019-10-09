@@ -13,31 +13,31 @@
 
 <script type="module">
 
-import Heatmap from './../main.js'
+import Heatmap from './../dist/visualHeatmap.esm.browser.js';
 
 let data = [];
 let instance = Heatmap('#canvas', {
-        size: 50.0,
+        size: 5.0,
         max: 100,
         gradient: [{
-            color: [0, 0, 255, 1.0],
+            color: [0, 0, 255, 0.0],
             offset: 0.0
         }, {
-            color: [0, 0, 255, 1.0],
+            color: [0, 0, 255, 0.3],
             offset: 0.35
         }, {
-            color: [255, 0, 0, 1.0],
+            color: [255, 0, 0, 0.8],
             offset: 0.75
         }, {
-            color: [255, 255, 255, 1.0],
+            color: [255, 255, 255, 0.8],
             offset: 1.0
         }]
     });
 
     var gui = new dat.GUI();
     var Params = function() {
-        this.points = 10000;
-        this.pointSize = 30;
+        this.points = 100000;
+        this.size = 5;
         this.opacity = 1.0;
         this.blurr = 1.0;
         this.transalteX = 0;
@@ -49,12 +49,8 @@ let instance = Heatmap('#canvas', {
     };
 
     var params = new Params();
-    gui.add( params, 'points', 1, 1000000 ).onChange( function () {
-        data = generateData(params.points);
-        instance.renderData(data);
-    } );
-	gui.add( params, 'pointSize', 1, 100 ).onChange( function () {
-        instance.setSize(params.pointSize);
+	gui.add( params, 'size', 1, 100 ).onChange( function () {
+        instance.setSize(params.size);
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
         instance.setOpacity(params.opacity);
@@ -81,8 +77,8 @@ let instance = Heatmap('#canvas', {
         for (let i = 0; i < count; i++) {
             let val = Math.random() * 100
             data.push({
-                x: Math.random() * instance.width,
-                y: Math.random() * instance.height,
+                x: Math.random() * instance.width * 0.5,
+                y: Math.random() * instance.height * 0.5,
                 velX: random(-0.5, 0.25),
                 velY: random(-0.5, 0.25),
                 value: val
@@ -90,7 +86,7 @@ let instance = Heatmap('#canvas', {
         }
         return data;
     }
-    data = generateData(1000);
+    data = generateData(100000);
     call();
 
     function call () {
@@ -104,26 +100,12 @@ let instance = Heatmap('#canvas', {
         for (let i = 0, len = data.length; i < len; i++) {
             circle = data[i];
             
-            if ((circle.x + circle.value) >= instance.width) {
+            if ((circle.x + circle.value) >= instance.width || (circle.x - circle.value) <= 0) {
                 circle.velX = -(circle.velX);
             }
-            if ((circle.x - circle.value) <= 0) {
-                circle.velX = -(circle.velX);
-            }
-            if ((circle.y + circle.value) >= instance.height) {
+            if ((circle.y + circle.value) >= instance.height || (circle.y - circle.value) <= 0) {
                 circle.velY = -(circle.velY);
             }
-            if ((circle.y - circle.value) <= 0) {
-                circle.velY = -(circle.velY);
-            }
-
-            // if (((circle.x + circle.value) >= 1400) || ((circle.x - circle.value) <= 0)) {
-            //     circle.velX = -(circle.velX);
-            // }
-
-            // if (((circle.y + circle.value) >= 900) || ((circle.y - circle.value) <= 0)) {
-            //     circle.velY = -(circle.velY);
-            // }
 
             circle.x += circle.velX;
             circle.y += circle.velY;

@@ -18,31 +18,31 @@ import Heatmap from './../dist/visualHeatmap.esm.browser.js';
 let data = [];
 console.log(Heatmap);
 let instance = Heatmap('#canvas', {
-        size: 30.0,
+        size: 5.0,
         max: 100,
         blurr: 1.0,
         gradient: [{
-            color: [0, 0, 255, 1.0],
+            color: [0, 0, 255, 0.0],
             offset: 0
         }, {
-            color: [0, 0, 255, 1.0],
+            color: [0, 0, 255, 0.2],
             offset: 0.2
         }, {
-            color: [0, 255, 0, 1.0],
+            color: [0, 255, 0, 0.5],
             offset: 0.45
         }, {
-            color: [255, 255, 0, 1.0],
+            color: [255, 255, 0, 0.5],
             offset: 0.85
         }, {
-            color: [255, 0, 0, 1.0],
+            color: [255, 0, 0, 0.5],
             offset: 1.0
         }]
     });
 
     var gui = new dat.GUI();
     var Params = function() {
-        this.points = 10000;
-        this.pointSize = 30;
+        this.points = 100000;
+        this.size = 30;
         this.opacity = 1.0;
         this.blurr = 1.0;
         this.transalteX = 0;
@@ -58,8 +58,8 @@ let instance = Heatmap('#canvas', {
         data = generateData(params.points);
         instance.renderData(data);
     } );
-	gui.add( params, 'pointSize', 1, 100 ).onChange( function () {
-        instance.setSize(params.pointSize);
+	gui.add( params, 'size', 1, 100 ).onChange( function () {
+        instance.setSize(params.size);
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
         instance.setOpacity(params.opacity);
@@ -80,50 +80,23 @@ let instance = Heatmap('#canvas', {
         instance.setRotationAngle(params.rotationAngle);
     } );
 
+    data = generateData(100000);
+    instance.renderData(data);
+
     function generateData (count) {
         var data = [];
         let val = 50
         for (let i = 0; i < count; i++) {
             let val = Math.random() * 100
             data.push({
-                x: random(-instance.width ,instance.width),
-                y: random(-instance.height ,instance.height),
+                x: random(0 ,instance.width * 0.5),
+                y: random(0 ,instance.height * 0.5),
                 velX: random(-0.5, 0.25),
                 velY: random(-0.5, 0.25),
                 value: val
             });
         }
         return data;
-    }
-    data = generateData(10000);
-    call();
-
-    function call () {
-        updateData();
-        instance.renderData(data);
-        window.requestAnimationFrame(call);
-    }
-    
-    function updateData() {
-        let circle;
-        for (let i = 0, len = data.length; i < len; i++) {
-            circle = data[i];
-            
-            if ((circle.x + circle.value) >= instance.width) {
-                circle.velX = -(circle.velX);
-            }
-            if ((circle.x - circle.value) <= 0) {
-                circle.velX = -(circle.velX);
-            }
-            if ((circle.y + circle.value) >= instance.height) {
-                circle.velY = -(circle.velY);
-            }
-            if ((circle.y - circle.value) <= 0) {
-                circle.velY = -(circle.velY);
-            }
-            circle.x += circle.velX;
-            circle.y += circle.velY;
-        }
     }
     
     function random(min, max) {

@@ -1,6 +1,6 @@
 {
   "name": "visual-heatmap",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
   "main": "main.js",
   "scripts": {
@@ -33,7 +33,7 @@
     "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
-    "rollup": "^1.21.4",
+    "rollup": "^1.23.1",
     "rollup-plugin-buble": "^0.19.8",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-eslint": "^7.0.0",
