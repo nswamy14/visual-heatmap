@@ -1,6 +1,6 @@
 {
   "name": "visual-heatmap",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
   "main": "main.js",
   "scripts": {
