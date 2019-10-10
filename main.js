@@ -64,9 +64,7 @@ var ColorfragmentShader = `
 
 	void main() {
 		vec4 color = vec4(texture2D(u_framebuffer, v_texCoord.xy));
-		if (color.a == 0.0) {
-			discard;
-		} else {
+		if (color.a >= 0.0 && color.a <= 1.0) {
 			vec4 color_;
 			float fract = 1.0 / (u_colorCount - 1.0);
 			if (color.a <= u_offset[1]) {
@@ -89,8 +87,9 @@ var ColorfragmentShader = `
 				color_ = mix( u_colorArr[8], u_colorArr[9], remap( u_offset[8], u_offset[9], color.a ) );
 			} else if (color.a <= u_offset[10]) {
 				color_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], color.a ) );
+			} else {
+				color_ = vec4(0.0, 0.0, 0.0, 0.0);
 			}
-			// color_.a = color.a - (1.0 - u_opacity);
 			color_.a = color_.a - (1.0 - u_opacity);
 			if (color_.a < 0.0) {
 				color_.a = 0.0;

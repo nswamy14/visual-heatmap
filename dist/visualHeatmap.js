@@ -1,5 +1,5 @@
 /*!
-      * Heatmap v1.0.1
+      * Heatmap v1.0.3
       * (c) 2019 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -75,9 +75,7 @@
 
 	void main() {
 		vec4 color = vec4(texture2D(u_framebuffer, v_texCoord.xy));
-		if (color.a == 0.0) {
-			discard;
-		} else {
+		if (color.a >= 0.0 && color.a <= 1.0) {
 			vec4 color_;
 			float fract = 1.0 / (u_colorCount - 1.0);
 			if (color.a <= u_offset[1]) {
@@ -100,8 +98,9 @@
 				color_ = mix( u_colorArr[8], u_colorArr[9], remap( u_offset[8], u_offset[9], color.a ) );
 			} else if (color.a <= u_offset[10]) {
 				color_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], color.a ) );
+			} else {
+				color_ = vec4(0.0, 0.0, 0.0, 0.0);
 			}
-			// color_.a = color.a - (1.0 - u_opacity);
 			color_.a = color_.a - (1.0 - u_opacity);
 			if (color_.a < 0.0) {
 				color_.a = 0.0;
@@ -367,7 +366,7 @@
 		};
 
 		Chart.prototype.addData = function (data, transIntactFlag) {
-			let self = this;
+			const self = this;
 			for (let i = 0; i < data.length; i++) {
 				if (transIntactFlag) {
 					transCoOr.call(self, data[i]);
