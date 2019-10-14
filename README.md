@@ -36,7 +36,7 @@ visualHeatmap provides a API to create context **WebGL**. API accepts containerI
 let instance = Heatmap('#containerId', {
         size: 30.0,
         max: 100,
-        blurr: 1.0,
+        blur: 1.0,
         gradient: [{
             color: [0, 0, 255, 1.0],
             offset: 0
@@ -63,7 +63,7 @@ Object with config properties.
 {
 size : Radius of the data point, in pixels.
 max : Max data Value for relative gradient computation.
-blurr : Blurr factor.
+blur : Blur factor.
 opacity : Opacity factor.
 rotationAngle : Rotation angle.
 translate : translate vector [x, y].
@@ -99,8 +99,8 @@ Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 Api to set point radius. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-### instance.setBlurr()
-Api to set Blurr factor. Accepts float value as an input.
+### instance.setBlur()
+Api to set Blur factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 ### instance.setOpacity()

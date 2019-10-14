@@ -20,9 +20,9 @@ console.log(Heatmap);
 let instance = Heatmap('#canvas', {
         size: 5.0,
         max: 100,
-        blurr: 1.0,
+        blur: 1.0,
         gradient: [{
-            color: [0, 0, 255, 0.0],
+            color: [0, 0, 0, 0.00],
             offset: 0
         }, {
             color: [0, 0, 255, 0.2],
@@ -31,10 +31,10 @@ let instance = Heatmap('#canvas', {
             color: [0, 255, 0, 0.5],
             offset: 0.45
         }, {
-            color: [255, 255, 0, 0.5],
+            color: [255, 255, 0, 1.0],
             offset: 0.85
         }, {
-            color: [255, 0, 0, 0.5],
+            color: [255, 0, 0, 1.0],
             offset: 1.0
         }]
     });
@@ -42,9 +42,9 @@ let instance = Heatmap('#canvas', {
     var gui = new dat.GUI();
     var Params = function() {
         this.points = 100000;
-        this.size = 30;
+        this.size = 5;
         this.opacity = 1.0;
-        this.blurr = 1.0;
+        this.blur = 1.0;
         this.transalteX = 0;
         this.transalteY = 0;
         this.zoom = 1.0;
@@ -64,8 +64,8 @@ let instance = Heatmap('#canvas', {
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
         instance.setOpacity(params.opacity);
     } );
-    gui.add( params, 'blurr', 0, 1 ).onChange( function () {
-        instance.setBlurr(params.blurr);
+    gui.add( params, 'blur', 0, 1 ).onChange( function () {
+        instance.setBlur(params.blur);
     } );
     gui.add( params, 'transalteX', -instance.width, instance.width ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);

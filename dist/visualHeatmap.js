@@ -1,5 +1,5 @@
 /*!
-      * Heatmap v1.0.1
+      * Heatmap v1.0.3
       * (c) 2019 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -29,10 +29,8 @@
 		float r = 0.0; 
 		vec2 cxy = 2.0 * gl_PointCoord - 1.0;
 		r = dot(cxy, cxy);
-		if(r > 1.0) {
-			discard; 
-		} else { 
-			gl_FragColor = vec4(0, 0, 0, (v_i/u_max) * (u_blur) * (1.0 - sqrt(r * r * r))); 
+		if(r <= 1.0) {
+			gl_FragColor = vec4(0, 0, 0, (v_i/u_max) * u_blur * (1.0 - sqrt(r)));
 		}
 	}`;
 
@@ -74,34 +72,34 @@
 	}
 
 	void main() {
-		vec4 color = vec4(texture2D(u_framebuffer, v_texCoord.xy));
-		if (color.a == 0.0) {
-			discard;
-		} else {
+		float alpha = texture2D(u_framebuffer, v_texCoord.xy).a;
+		if (alpha > 0.0 && alpha <= 1.0) {
 			vec4 color_;
-			float fract = 1.0 / (u_colorCount - 1.0);
-			if (color.a <= u_offset[1]) {
-				color_ = mix( u_colorArr[0], u_colorArr[1], remap( u_offset[0], u_offset[1], color.a ) );
-			} else if (color.a <= u_offset[2]) {
-				color_ = mix( u_colorArr[1], u_colorArr[2], remap( u_offset[1], u_offset[2], color.a ) );
-			} else if (color.a <= u_offset[3]) {
-				color_ = mix( u_colorArr[2], u_colorArr[3], remap( u_offset[2], u_offset[3], color.a ) );
-			} else if (color.a <= u_offset[4]) {
-				color_ = mix( u_colorArr[3], u_colorArr[4], remap( u_offset[3], u_offset[4], color.a ) );
-			} else if (color.a <= u_offset[5]) {
-				color_ = mix( u_colorArr[4], u_colorArr[5], remap( u_offset[4], u_offset[5], color.a ) );
-			} else if (color.a <= u_offset[6]) {
-				color_ = mix( u_colorArr[5], u_colorArr[6], remap( u_offset[5], u_offset[6], color.a ) );
-			} else if (color.a <= u_offset[7]) {
-				color_ = mix( u_colorArr[6], u_colorArr[7], remap( u_offset[6], u_offset[7], color.a ) );
-			} else if (color.a <= u_offset[8]) {
-				color_ = mix( u_colorArr[7], u_colorArr[8], remap( u_offset[7], u_offset[8], color.a ) );
-			} else if (color.a <= u_offset[9]) {
-				color_ = mix( u_colorArr[8], u_colorArr[9], remap( u_offset[8], u_offset[9], color.a ) );
-			} else if (color.a <= u_offset[10]) {
-				color_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], color.a ) );
+			if (alpha <= u_offset[0]) {
+				color_ = u_colorArr[0];
+			} else if (alpha <= u_offset[1]) {
+				color_ = mix( u_colorArr[0], u_colorArr[1], remap( u_offset[0], u_offset[1], alpha ) );
+			} else if (alpha <= u_offset[2]) {
+				color_ = mix( u_colorArr[1], u_colorArr[2], remap( u_offset[1], u_offset[2], alpha ) );
+			} else if (alpha <= u_offset[3]) {
+				color_ = mix( u_colorArr[2], u_colorArr[3], remap( u_offset[2], u_offset[3], alpha ) );
+			} else if (alpha <= u_offset[4]) {
+				color_ = mix( u_colorArr[3], u_colorArr[4], remap( u_offset[3], u_offset[4], alpha ) );
+			} else if (alpha <= u_offset[5]) {
+				color_ = mix( u_colorArr[4], u_colorArr[5], remap( u_offset[4], u_offset[5], alpha ) );
+			} else if (alpha <= u_offset[6]) {
+				color_ = mix( u_colorArr[5], u_colorArr[6], remap( u_offset[5], u_offset[6], alpha ) );
+			} else if (alpha <= u_offset[7]) {
+				color_ = mix( u_colorArr[6], u_colorArr[7], remap( u_offset[6], u_offset[7], alpha ) );
+			} else if (alpha <= u_offset[8]) {
+				color_ = mix( u_colorArr[7], u_colorArr[8], remap( u_offset[7], u_offset[8], alpha ) );
+			} else if (alpha <= u_offset[9]) {
+				color_ = mix( u_colorArr[8], u_colorArr[9], remap( u_offset[8], u_offset[9], alpha ) );
+			} else if (alpha <= u_offset[10]) {
+				color_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], alpha ) );
+			} else {
+				color_ = vec4(0.0, 0.0, 0.0, 0.0);
 			}
-			// color_.a = color.a - (1.0 - u_opacity);
 			color_.a = color_.a - (1.0 - u_opacity);
 			if (color_.a < 0.0) {
 				color_.a = 0.0;
@@ -271,7 +269,8 @@
 				premultipliedAlpha: false,
 				depth: false,
 				antialias: true,
-				alpha: true
+				alpha: true,
+				preserveDrawingBuffer: false
 			});
 			ratio = getPixlRatio(ctx);
 			console.log(ratio);
@@ -367,7 +366,7 @@
 		};
 
 		Chart.prototype.addData = function (data, transIntactFlag) {
-			let self = this;
+			const self = this;
 			for (let i = 0; i < data.length; i++) {
 				if (transIntactFlag) {
 					transCoOr.call(self, data[i]);
