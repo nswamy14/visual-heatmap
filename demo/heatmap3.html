@@ -18,10 +18,10 @@ let data = [];
 let instance = Heatmap('#canvas', {
         size: 100.0,
         max: 100,
-        blurr: 1.0,
+        blur: 1.0,
         zoom: 1.0,
         gradient: [{
-            color: [255, 255, 255, 1.0],
+            color: [255, 255, 255, 0.0],
             offset: 0
         }, {
             color: [212, 225, 255, 1.0],
@@ -43,7 +43,7 @@ let instance = Heatmap('#canvas', {
         this.points = 10000;
         this.size = 100;
         this.opacity = 1.0;
-        this.blurr = 1.0;
+        this.blur = 1.0;
         this.transalteX = 0;
         this.transalteY = 0;
         this.zoom = 1.0;
@@ -59,8 +59,8 @@ let instance = Heatmap('#canvas', {
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
         instance.setOpacity(params.opacity);
     } );
-    gui.add( params, 'blurr', 0, 1 ).onChange( function () {
-        instance.setBlurr(params.blurr);
+    gui.add( params, 'blur', 0, 1 ).onChange( function () {
+        instance.setBlur(params.blur);
     } );
     gui.add( params, 'transalteX', -instance.width, instance.width ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);
