@@ -89,8 +89,8 @@ let instance = Heatmap('#canvas', {
         for (let i = 0; i < count; i++) {
             let val = Math.random() * 100
             data.push({
-                x: random(0 ,instance.width * 0.5),
-                y: random(0 ,instance.height * 0.5),
+                x: random(0 ,instance.width),
+                y: random(0 ,instance.height),
                 velX: random(-0.5, 0.25),
                 velY: random(-0.5, 0.25),
                 value: val
