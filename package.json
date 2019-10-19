@@ -11,13 +11,13 @@
     "url": "git+https://github.com/nswamy14/visual-heatmap.git"
   },
   "keywords": [
-    "WebGL",
-    "Heatmap",
-    "Visual Heatmap",
-    "2d Graphics",
-    "Rendering",
+    "webgl",
+    "heatmap",
+    "visual heatmap",
+    "2d graphics",
+    "rendering",
     "visualization",
-    "HighScale"
+    "highScale"
   ],
   "author": "Narayana Swamy",
   "license": "BSD-3-Clause",
