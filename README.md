@@ -1,4 +1,4 @@
-# Visual-Heatmap Js
+# Visual-Heatmap Js [![npm](https://img.shields.io/npm/v/visual-heatmap.svg)](https://www.npmjs.com/package/visual-heatmap) [![Downloads](https://img.shields.io/npm/dm/visual-heatmap.svg)](https://www.npmjs.com/package/visual-heatmap)
 Open source javascript module for rendering high performance, large scale heatmap.
 
 Visual Heatmap is based on advanced graphical rendering context - WebGL/Shaders. It can render 500,000+ data points with a good framerate.
