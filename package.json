@@ -4,7 +4,8 @@
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "rollup -wm -c rollup.config.js",
+    "build": "rm -rf ./dist/ && rollup -c rollup.config.js"
   },
   "repository": {
     "type": "git",

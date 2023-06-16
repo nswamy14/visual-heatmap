@@ -54,7 +54,7 @@ var GradvertexShader = `
 var ColorfragmentShader = `
 	precision mediump float;
 	varying vec2 v_texCoord;
-	uniform sampler2D u_framebuffer; uniform vec4 u_colorArr[100]; uniform float u_colorCount; uniform float u_opacity; uniform float u_offset[100];
+	uniform sampler2D u_framebuffer; uniform vec4 u_colorArr[11]; uniform float u_colorCount; uniform float u_opacity; uniform float u_offset[11];
 
 	float remap ( float minval, float maxval, float curval ) {
 		return ( curval - minval ) / ( maxval - minval );
