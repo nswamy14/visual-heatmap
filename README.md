@@ -31,7 +31,7 @@ import Heatmap from 'visual-heatmap'
 ## VisualHeatmapJs - API
 
 ### visualHeatmap()
-visualHeatmap provides a API to create context **WebGL**. API accepts containerId and config as an input. A layer will be created under the provided Div #containerId.
+visualHeatmap provides a API to create context **WebGL**. API accepts container/containerId and config as an input. A layer will be created under the provided Div #containerId.
 ```Javascript
 let instance = Heatmap('#containerId', {
         size: 30.0,
@@ -55,7 +55,7 @@ let instance = Heatmap('#containerId', {
         }]
     });
 ```
-**ContainerId** CSS Query selector which identifies container.
+**Container/ContainerId** The container div element or a string CSS Query selector which identifies the container.
 
 **Config**
 Object with config properties.

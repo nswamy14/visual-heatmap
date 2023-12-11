@@ -250,7 +250,16 @@ function Heatmap (context, config = {}) {
 	}
 
 	function Chart (context, config) {
-		const res = document.querySelector(context);
+		let res;
+		if (typeof context === 'string') {
+			res = document.querySelector(context);
+		}
+		else if (context instanceof Element) {
+			res = context;
+		}
+		else {
+			throw new Error('Context must be either a string or an Element');
+		}
 		const height = res.clientHeight;
 		const width = res.clientWidth;
 		const layer = document.createElement('canvas');
