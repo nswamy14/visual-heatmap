@@ -17,11 +17,14 @@ import Heatmap from './../dist/visualHeatmap.esm.js';
 let data = [];
 let instance = Heatmap('#canvas', {
         size: 100.0,
-        max: 100,
         intensity: 1.0,
         zoom: 1.0,
         backgroundImage: {
-            url: "./9267.jpg"
+            url: "./9267.jpg",
+            height: 553.5* 2,
+            width: 864*2,
+            x: 0,
+            y: 0
         },
         gradient: [{
             color: [0, 0, 0, 0.0],
