@@ -2,7 +2,8 @@
   "name": "visual-heatmap",
   "version": "1.0.5",
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
-  "main": "main.js",
+  "module": "./main.js",
+  "main": "./dist/visualHeatmap.esm.js",
   "scripts": {
     "dev": "rollup -wm -c rollup.config.js",
     "build": "rm -rf ./dist/ && rollup -c rollup.config.js"
@@ -27,18 +28,13 @@
   },
   "homepage": "https://github.com/nswamy14/visual-heatmap#readme",
   "devDependencies": {
-    "eslint": "^6.4.0",
-    "eslint-config-standard": "^14.1.0",
-    "eslint-loader": "^3.0.0",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-node": "^10.0.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "rollup": "^1.23.1",
-    "rollup-plugin-buble": "^0.19.8",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-eslint": "^7.0.0",
-    "rollup-plugin-terser": "^5.1.2",
-    "rollup-plugin-uglify": "^6.0.3"
+    "@rollup/plugin-eslint": "^9.0.5",
+    "@rollup/plugin-commonjs": "^22.0.2",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-config-standard": "^14.1.1",
+    "rollup": "^2.79.1",
+    "rollup-plugin-terser": "^7.0.0"
   }
 }

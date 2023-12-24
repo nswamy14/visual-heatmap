@@ -6,118 +6,23 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
-	(global = global || self, global.visualHeatmap = factory());
-}(this, function () { 'use strict';
-
-	function getPixlRatio (ctx) {
-		const dpr = window.devicePixelRatio || 1;
-		const bsr = ctx.webkitBackingStorePixelRatio ||
-	        ctx.mozBackingStorePixelRatio ||
-	        ctx.msBackingStorePixelRatio ||
-	        ctx.oBackingStorePixelRatio ||
-	        ctx.backingStorePixelRatio || 1;
-
-		return dpr / bsr;
-	}
-
-	var GradfragmentShader = `
-	precision mediump float;
-	uniform float u_max;
-	uniform float u_blur;
-	varying float v_i;
-	void main() {
-		float r = 0.0; 
-		vec2 cxy = 2.0 * gl_PointCoord - 1.0;
-		r = dot(cxy, cxy);
-		if(r <= 1.0) {
-			gl_FragColor = vec4(0, 0, 0, (v_i/u_max) * u_blur * (1.0 - sqrt(r)));
-		}
-	}`;
-
-	var GradvertexShader = `
-	attribute vec2 a_position;
-	attribute float a_intensity;
-	uniform float u_size;
-	uniform vec2 u_resolution;
-	uniform vec2 u_translate; 
-	uniform float u_zoom; 
-	uniform float u_angle; 
-	uniform float u_density;
-	varying float v_i;
-
-	vec2 rotation(vec2 v, float a) {
-		float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); 
-		return m * v;
-	}
-
-	void main() {
-		vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
-		vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
-		zeroToTwo = zeroToTwo / u_zoom;
-		if (u_angle != 0.0) {
-			zeroToTwo = rotation(zeroToTwo, u_angle);
-		}
-		gl_Position = vec4(zeroToTwo , 0, 1);
-		gl_PointSize = u_size * u_density;
-		v_i = a_intensity;
-	}`;
-
-	var ColorfragmentShader = `
-	precision mediump float;
-	varying vec2 v_texCoord;
-	uniform sampler2D u_framebuffer; uniform vec4 u_colorArr[11]; uniform float u_colorCount; uniform float u_opacity; uniform float u_offset[11];
-
-	float remap ( float minval, float maxval, float curval ) {
-		return ( curval - minval ) / ( maxval - minval );
-	}
-
-	void main() {
-		float alpha = texture2D(u_framebuffer, v_texCoord.xy).a;
-		if (alpha > 0.0 && alpha <= 1.0) {
-			vec4 color_;
-			if (alpha <= u_offset[0]) {
-				color_ = u_colorArr[0];
-			} else if (alpha <= u_offset[1]) {
-				color_ = mix( u_colorArr[0], u_colorArr[1], remap( u_offset[0], u_offset[1], alpha ) );
-			} else if (alpha <= u_offset[2]) {
-				color_ = mix( u_colorArr[1], u_colorArr[2], remap( u_offset[1], u_offset[2], alpha ) );
-			} else if (alpha <= u_offset[3]) {
-				color_ = mix( u_colorArr[2], u_colorArr[3], remap( u_offset[2], u_offset[3], alpha ) );
-			} else if (alpha <= u_offset[4]) {
-				color_ = mix( u_colorArr[3], u_colorArr[4], remap( u_offset[3], u_offset[4], alpha ) );
-			} else if (alpha <= u_offset[5]) {
-				color_ = mix( u_colorArr[4], u_colorArr[5], remap( u_offset[4], u_offset[5], alpha ) );
-			} else if (alpha <= u_offset[6]) {
-				color_ = mix( u_colorArr[5], u_colorArr[6], remap( u_offset[5], u_offset[6], alpha ) );
-			} else if (alpha <= u_offset[7]) {
-				color_ = mix( u_colorArr[6], u_colorArr[7], remap( u_offset[6], u_offset[7], alpha ) );
-			} else if (alpha <= u_offset[8]) {
-				color_ = mix( u_colorArr[7], u_colorArr[8], remap( u_offset[7], u_offset[8], alpha ) );
-			} else if (alpha <= u_offset[9]) {
-				color_ = mix( u_colorArr[8], u_colorArr[9], remap( u_offset[8], u_offset[9], alpha ) );
-			} else if (alpha <= u_offset[10]) {
-				color_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], alpha ) );
-			} else {
-				color_ = vec4(0.0, 0.0, 0.0, 0.0);
-			}
-			color_.a = color_.a - (1.0 - u_opacity);
-			if (color_.a < 0.0) {
-				color_.a = 0.0;
-			}
-			gl_FragColor = color_;
-		}
-	}`;
-
-	var ColorvertexShader = `
-	attribute vec2 a_texCoord;
-	varying vec2 v_texCoord;
-	void main() {
-		vec2 clipSpace = a_texCoord * 2.0 - 1.0;
-		gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-		v_texCoord = a_texCoord;
-	}`;
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.visualHeatmap = factory());
+})(this, (function () { 'use strict';
 
 	function Heatmap (context, config = {}) {
+		let ratio;
+		let buffer;
+		let posVec = [];
+		let buffer2;
+		let rVec = [];
+		let pLen = 0;
+		let dataMinValue = null;
+		let dataMaxValue = null;
+		let maxTextureSize = null;
+		let imgWidth;
+		let imgHeight;
+
+
 		function gradientMapper (grad) {
 			const arr = [];
 			const gradLength = grad.length;
@@ -150,9 +55,10 @@
 			return shader;
 		}
 
-		function createGradiantShader (ctx) {
-			var vshader = createShader(ctx, 'VERTEX_SHADER', GradvertexShader);
-			var fshader = createShader(ctx, 'FRAGMENT_SHADER', GradfragmentShader);
+		function createProgram (ctx, shader) {
+			var vshader = createShader(ctx, 'VERTEX_SHADER', shader.vertex);
+			var fshader = createShader(ctx, 'FRAGMENT_SHADER', shader.fragment);
+
 			var program = ctx.createProgram();
 
 			ctx.attachShader(program, vshader);
@@ -164,8 +70,46 @@
 				var lastError = ctx.getProgramInfoLog(program);
 				console.error('Error in program linking:' + lastError);
 				ctx.deleteProgram(program);
+				return null;
+			} else {
+				return program;
 			}
+		}
 
+		function createImageShader (ctx) {
+			var program = createProgram(ctx, imageShaders);
+			return {
+				program: program,
+				attr: [{
+					bufferType: ctx.ARRAY_BUFFER,
+					buffer: ctx.createBuffer(),
+					drawType: ctx.STATIC_DRAW,
+					valueType: ctx.FLOAT,
+					size: 2,
+					attribute: ctx.getAttribLocation(program, 'a_position'),
+					data: new Float32Array([])
+				}, {
+					bufferType: ctx.ARRAY_BUFFER,
+					buffer: ctx.createBuffer(),
+					drawType: ctx.STATIC_DRAW,
+					valueType: ctx.FLOAT,
+					size: 2,
+					attribute: ctx.getAttribLocation(program, 'a_texCoord'),
+					data: new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0])
+				}],
+				uniform: {
+					u_resolution: ctx.getUniformLocation(program, 'u_resolution'),
+					u_image: ctx.getUniformLocation(program, 'u_image'),
+					u_translate: ctx.getUniformLocation(program, 'u_translate'),
+					u_zoom: ctx.getUniformLocation(program, 'u_zoom'),
+					u_angle: ctx.getUniformLocation(program, 'u_angle'),
+					u_density: ctx.getUniformLocation(program, 'u_density')
+				}
+			};
+		}
+
+		function createGradiantShader (ctx) {
+			var program = createProgram(ctx, GradShaders);
 			return {
 				program: program,
 				attr: [{
@@ -188,8 +132,9 @@
 				uniform: {
 					u_resolution: ctx.getUniformLocation(program, 'u_resolution'),
 					u_max: ctx.getUniformLocation(program, 'u_max'),
+					u_min: ctx.getUniformLocation(program, 'u_min'),
 					u_size: ctx.getUniformLocation(program, 'u_size'),
-					u_blur: ctx.getUniformLocation(program, 'u_blur'),
+					u_intensity: ctx.getUniformLocation(program, 'u_intensity'),
 					u_translate: ctx.getUniformLocation(program, 'u_translate'),
 					u_zoom: ctx.getUniformLocation(program, 'u_zoom'),
 					u_angle: ctx.getUniformLocation(program, 'u_angle'),
@@ -199,20 +144,7 @@
 		}
 
 		function createColorShader (ctx) {
-			var vshader = createShader(ctx, 'VERTEX_SHADER', ColorvertexShader);
-			var fshader = createShader(ctx, 'FRAGMENT_SHADER', ColorfragmentShader);
-			var program = ctx.createProgram();
-			ctx.attachShader(program, vshader);
-			ctx.attachShader(program, fshader);
-			ctx.linkProgram(program);
-
-			var linked = ctx.getProgramParameter(program, ctx.LINK_STATUS);
-			if (!linked) {
-				var lastError = ctx.getProgramInfoLog(program);
-				console.error('Error in program linking:' + lastError);
-				ctx.deleteProgram(program);
-			}
-
+			var program = createProgram(ctx, ColorShader);
 			return {
 				program: program,
 				attr: [{
@@ -234,12 +166,6 @@
 			};
 		}
 
-		let ratio;
-		let buffer;
-		let posVec = [];
-		let buffer2;
-		let rVec = [];
-		let pLen = 0;
 		function extractData (data) {
 			const len = data.length;
 			if (pLen !== len) {
@@ -249,23 +175,41 @@
 				rVec = new Float32Array(buffer2);
 				pLen = len;
 			}
+			const dataMinMaxValue = {
+				min: Infinity,
+				max: -Infinity
+			};
 			for (let i = 0; i < len; i++) {
 				posVec[i * 2] = data[i].x;
 				posVec[(i * 2) + 1] = data[i].y;
 				rVec[i] = data[i].value;
+				if (dataMinMaxValue.min > data[i].value) {
+					dataMinMaxValue.min = data[i].value;
+				}
+				if (dataMinMaxValue.max < data[i].value) {
+					dataMinMaxValue.max = data[i].value;
+				}
 			}
 			return {
 				posVec: posVec,
-				rVec: rVec
+				rVec: rVec,
+				minMax: dataMinMaxValue
 			};
 		}
 
 		function Chart (context, config) {
-			const res = document.querySelector(context);
+			let res;
+			if (typeof context === 'string') {
+				res = document.querySelector(context);
+			} else if (context instanceof Element) {
+				res = context;
+			} else {
+				throw new Error('Context must be either a string or an Element');
+			}
 			const height = res.clientHeight;
 			const width = res.clientWidth;
 			const layer = document.createElement('canvas');
-			const ctx = layer.getContext('webgl', {
+			const ctx = layer.getContext('webgl2', {
 				premultipliedAlpha: false,
 				depth: false,
 				antialias: true,
@@ -273,7 +217,6 @@
 				preserveDrawingBuffer: false
 			});
 			ratio = getPixlRatio(ctx);
-			console.log(ratio);
 			ctx.clearColor(0, 0, 0, 0);
 			ctx.enable(ctx.BLEND);
 			ctx.blendEquation(ctx.FUNC_ADD);
@@ -294,21 +237,29 @@
 			this.dom = res;
 			this.gradShadOP = createGradiantShader(this.ctx);
 			this.colorShadOP = createColorShader(this.ctx);
+			this.imageShaOP = createImageShader(this.ctx);
 			this.fbTexObj = ctx.createTexture();
 			this.fbo = ctx.createFramebuffer();
 
 			this.size = config.size ? config.size : 20.0;
-			this.max = config.max ? config.max : Infinity;
-			this.blur = config.blur ? config.blur : 1.0;
+			dataMaxValue = config.max ? config.max : null;
+			dataMinValue = config.min ? config.min : null;
+			this.intensity = config.intensity ? config.intensity : 1.0;
 			this.translate = (config.translate && config.translate.length === 2) ? config.translate : [0, 0];
 			this.zoom = (config.zoom ? config.zoom : 1.0);
 			this.angle = (config.rotationAngle ? config.rotationAngle : 0.0);
 			this.opacity = config.opacity ? config.opacity : 1.0;
 			this.ratio = ratio;
 
+			if (config.backgroundImage && config.backgroundImage.url) {
+				this.setBackgroundImage(config.backgroundImage);
+			}
+
 			this.rawData = [];
 
 			ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+			this.render(this.exData || {});
 		}
 
 		Chart.prototype.resize = function () {
@@ -331,7 +282,12 @@
 		};
 
 		Chart.prototype.setMax = function (max) {
-			this.max = max;
+			dataMaxValue = max;
+			this.render(this.exData);
+		};
+
+		Chart.prototype.setMin = function (min) {
+			dataMinValue = min;
 			this.render(this.exData);
 		};
 
@@ -355,14 +311,65 @@
 			this.render(this.exData);
 		};
 
-		Chart.prototype.setBlur = function (blur) {
-			this.blur = blur !== undefined ? blur : 1.0;
+		Chart.prototype.setIntensity = function (intensity) {
+			this.intensity = intensity !== undefined ? intensity : 1.0;
 			this.render(this.exData);
 		};
 
 		Chart.prototype.setOpacity = function (opacity) {
 			this.opacity = opacity !== undefined ? opacity : 1.0;
 			this.render(this.exData);
+		};
+
+		Chart.prototype.setBackgroundImage = function (config) {
+			const self = this;
+			if (!config.url) {
+				return;
+			}
+
+			maxTextureSize = this.ctx.getParameter(this.ctx.MAX_TEXTURE_SIZE);
+			this.imageTexture = this.ctx.createTexture();
+		    this.type = 'TEXTURE_2D';
+		    this.imageConfig = null;
+
+		    imgWidth = config.width || this.width;
+		    imgHeight = config.height || this.height;
+
+		    imgWidth = imgWidth > maxTextureSize ? maxTextureSize : imgWidth;
+		    imgHeight = imgHeight > maxTextureSize ? maxTextureSize : imgHeight;
+
+		    imageInstance(config.url, function onUpdateCallBack () {
+				self.ctx.activeTexture(self.ctx.TEXTURE0);
+				self.ctx.bindTexture(self.ctx.TEXTURE_2D, self.imageTexture);
+				self.ctx.texParameteri(self.ctx.TEXTURE_2D, self.ctx.TEXTURE_WRAP_S, self.ctx.CLAMP_TO_EDGE);
+				self.ctx.texParameteri(self.ctx.TEXTURE_2D, self.ctx.TEXTURE_WRAP_T, self.ctx.CLAMP_TO_EDGE);
+				self.ctx.texParameteri(self.ctx.TEXTURE_2D, self.ctx.TEXTURE_MIN_FILTER, self.ctx.LINEAR);
+				self.ctx.texParameteri(self.ctx.TEXTURE_2D, self.ctx.TEXTURE_MAG_FILTER, self.ctx.LINEAR);
+
+				self.ctx.texImage2D(
+			            self.ctx.TEXTURE_2D,
+			            0,
+			            self.ctx.RGBA,
+			            this.naturalWidth,
+			            this.naturalHeight,
+			            0,
+			            self.ctx.RGBA,
+			            self.ctx.UNSIGNED_BYTE,
+			            this
+			        );
+
+				self.imageConfig = {
+					x: config.x || 0,
+					y: config.y || 0,
+					height: imgHeight,
+					width: imgWidth,
+					image: this
+				};
+
+				self.render(self.exData || {});
+		    }, function onErrorCallBack (error) {
+				console.error('Image Load Error', error);
+		    });
 		};
 
 		Chart.prototype.addData = function (data, transIntactFlag) {
@@ -385,28 +392,8 @@
 		Chart.prototype.render = function (exData) {
 			const ctx = this.ctx;
 			this.exData = exData;
-			this.gradShadOP.attr[0].data = exData.posVec;
-			this.gradShadOP.attr[1].data = exData.rVec;
 			
 			ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
-			
-			ctx.useProgram(this.gradShadOP.program);
-
-			ctx.uniform2fv(this.gradShadOP.uniform.u_resolution, new Float32Array([this.width, this.height]));
-			ctx.uniform2fv(this.gradShadOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
-			ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
-			ctx.uniform1f(this.gradShadOP.uniform.u_angle, this.angle);
-			ctx.uniform1f(this.gradShadOP.uniform.u_density, this.ratio);
-			ctx.uniform1f(this.gradShadOP.uniform.u_max, this.max);
-			ctx.uniform1f(this.gradShadOP.uniform.u_size, this.size);
-			ctx.uniform1f(this.gradShadOP.uniform.u_blur, this.blur);
-			
-			this.gradShadOP.attr.forEach(function (d) {
-				ctx.bindBuffer(d.bufferType, d.buffer);
-				ctx.bufferData(d.bufferType, d.data, d.drawType);
-				ctx.enableVertexAttribArray(d.attribute);
-				ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0);
-			});
 
 			ctx.bindTexture(ctx.TEXTURE_2D, this.fbTexObj);
 			ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, this.width, this.height, 0, ctx.RGBA, ctx.UNSIGNED_BYTE, null);
@@ -416,9 +403,70 @@
 
 			ctx.bindFramebuffer(ctx.FRAMEBUFFER, this.fbo);
 			ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, this.fbTexObj, 0);
-
-			ctx.drawArrays(ctx.POINTS, 0, exData.posVec.length / 2);
+			
+			renderHeatGrad.call(this, ctx, exData);
 			ctx.bindFramebuffer(ctx.FRAMEBUFFER, null);
+			if (this.imageConfig) {
+				renderImage.call(this, ctx);
+			}
+			renderColorGradiant.call(this, ctx);
+		};
+
+		function renderHeatGrad (ctx, exData) {
+			ctx.useProgram(this.gradShadOP.program);
+
+			this.min = dataMinValue !== null ? dataMinValue : exData?.minMax?.min ?? 0;
+			this.max = dataMaxValue !== null ? dataMaxValue : exData?.minMax?.max ?? 0;
+			this.gradShadOP.attr[0].data = exData.posVec || [];
+			this.gradShadOP.attr[1].data = exData.rVec || [];
+
+			ctx.uniform2fv(this.gradShadOP.uniform.u_resolution, new Float32Array([this.width, this.height]));
+			ctx.uniform2fv(this.gradShadOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
+			ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
+			ctx.uniform1f(this.gradShadOP.uniform.u_angle, this.angle);
+			ctx.uniform1f(this.gradShadOP.uniform.u_density, this.ratio);
+			ctx.uniform1f(this.gradShadOP.uniform.u_max, this.max);
+			ctx.uniform1f(this.gradShadOP.uniform.u_min, this.min);
+			ctx.uniform1f(this.gradShadOP.uniform.u_size, this.size);
+			ctx.uniform1f(this.gradShadOP.uniform.u_intensity, this.intensity);
+			
+			this.gradShadOP.attr.forEach(function (d) {
+				ctx.bindBuffer(d.bufferType, d.buffer);
+				ctx.bufferData(d.bufferType, d.data, d.drawType);
+				ctx.enableVertexAttribArray(d.attribute);
+				ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0);
+			});
+
+			ctx.drawArrays(ctx.POINTS, 0, (this.exData.posVec || []).length / 2);
+		}
+
+		function renderImage (ctx) {
+			const { x = 0, y = 0, width = 0, height = 0 } = this.imageConfig;
+
+			ctx.useProgram(this.imageShaOP.program);
+
+			ctx.uniform2fv(this.imageShaOP.uniform.u_resolution, new Float32Array([this.width, this.height]));
+			ctx.uniform2fv(this.imageShaOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
+			ctx.uniform1f(this.imageShaOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
+			ctx.uniform1f(this.imageShaOP.uniform.u_angle, this.angle);
+			ctx.uniform1f(this.imageShaOP.uniform.u_density, this.ratio);
+
+			this.imageShaOP.attr[0].data = new Float32Array([x, y, x + width, y, x, y + height, x, y + height, x + width, y, x + width, y + height]);
+
+			this.imageShaOP.attr.forEach(function (d) {
+				ctx.bindBuffer(d.bufferType, d.buffer);
+				ctx.bufferData(d.bufferType, d.data, d.drawType);
+				ctx.enableVertexAttribArray(d.attribute);
+				ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0);
+			});
+
+			ctx.uniform1i(this.imageShaOP.uniform.u_image, 0);
+			ctx.activeTexture(this.ctx.TEXTURE0);
+			ctx.bindTexture(this.ctx.TEXTURE_2D, this.imageTexture);
+			ctx.drawArrays(ctx.TRIANGLES, 0, 6);
+		}
+
+		function renderColorGradiant (ctx) {
 			ctx.useProgram(this.colorShadOP.program);
 
 			ctx.uniform4fv(this.colorShadOP.uniform.u_colorArr, this.gradient.value);
@@ -438,7 +486,7 @@
 			ctx.bindTexture(ctx.TEXTURE_2D, this.fbTexObj);
 
 			ctx.drawArrays(ctx.TRIANGLES, 0, 6);
-		};
+		}
 
 		function transCoOr (data) {
 			const widFat = this.width / (2 * ratio);
@@ -469,8 +517,190 @@
 			data.y -= (this.translate[1]);
 		}
 
+		function imageInstance (url, onLoad, onError) {
+		    const imageIns = new Image();
+		    imageIns.crossOrigin = 'anonymous';
+		    imageIns.onload = onLoad;
+		    imageIns.onerror = onError;
+		    imageIns.src = url;
+
+		    return imageIns;
+		}
+
 		return new Chart(context, config);
 	}
+
+	function getPixlRatio (ctx) {
+		const dpr = window.devicePixelRatio || 1;
+		const bsr = ctx.webkitBackingStorePixelRatio ||
+	        ctx.mozBackingStorePixelRatio ||
+	        ctx.msBackingStorePixelRatio ||
+	        ctx.oBackingStorePixelRatio ||
+	        ctx.backingStorePixelRatio || 1;
+
+		return dpr / bsr;
+	}
+
+	var GradShaders = {
+		vertex: `attribute vec2 a_position;
+	attribute float a_intensity;
+	uniform float u_size;
+	uniform vec2 u_resolution;
+	uniform vec2 u_translate; 
+	uniform float u_zoom; 
+	uniform float u_angle; 
+	uniform float u_density;
+	varying float v_i;
+
+	vec2 rotation(vec2 v, float a) {
+		float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); 
+		return m * v;
+	}
+
+	void main() {
+		vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
+		vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
+		zeroToTwo = zeroToTwo / u_zoom;
+		if (u_angle != 0.0) {
+			zeroToTwo = rotation(zeroToTwo, u_angle);
+		}
+		gl_Position = vec4(zeroToTwo , 0, 1);
+		gl_PointSize = u_size * u_density;
+		v_i = a_intensity;
+	}`,
+		fragment: `precision mediump float;
+	uniform float u_max;
+	uniform float u_min;
+	uniform float u_intensity;
+	varying float v_i;
+	void main() {
+		float r = 0.0; 
+		vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+		r = dot(cxy, cxy);
+		float deno = u_max - u_min;
+		if (deno <= 0.0) {
+			deno = 1.0;
+		}
+		if(r <= 1.0) {
+			gl_FragColor = vec4(0, 0, 0, ((v_i - u_min) / (deno)) * u_intensity * (1.0 - sqrt(r)));
+		}
+	}`
+	};
+
+	var ColorShader = {
+		vertex: `#version 300 es
+	precision highp float;
+	in vec2 a_texCoord;
+	out vec2 v_texCoord;
+	void main() {
+		vec2 clipSpace = a_texCoord * 2.0 - 1.0;
+		gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+		v_texCoord = a_texCoord;
+	}`,
+		fragment: `#version 300 es
+	precision mediump float;
+	in vec2 v_texCoord;
+	out vec4 fragColor;
+	uniform sampler2D u_framebuffer;
+	uniform vec4 u_colorArr[11];
+	uniform float u_colorCount;
+	uniform float u_opacity;
+	uniform float u_offset[11];
+
+	float remap ( float minval, float maxval, float curval ) {
+		return ( curval - minval ) / ( maxval - minval );
+	}
+
+	void main() {
+		float alpha = texture(u_framebuffer, v_texCoord.xy).a;
+		if (alpha > 0.0 && alpha <= 1.0) {
+			vec4 color_;
+			if (alpha <= u_offset[0]) {
+				color_ = u_colorArr[0];
+			} else if (alpha <= u_offset[1]) {
+				color_ = mix( u_colorArr[0], u_colorArr[1], remap( u_offset[0], u_offset[1], alpha ) );
+				color_ = color_ * mix( u_colorArr[0][3], u_colorArr[1][3], remap( u_offset[0], u_offset[1], alpha ));
+			} else if (alpha <= u_offset[2]) {
+				color_ = mix( u_colorArr[1], u_colorArr[2], remap( u_offset[1], u_offset[2], alpha ) );
+				color_ = color_ * mix( u_colorArr[1][3], u_colorArr[2][3], remap( u_offset[1], u_offset[2], alpha ));
+			} else if (alpha <= u_offset[3]) {
+				color_ = mix( u_colorArr[2], u_colorArr[3], remap( u_offset[2], u_offset[3], alpha ) );
+				color_ = color_ * mix( u_colorArr[2][3], u_colorArr[3][3], remap( u_offset[2], u_offset[3], alpha ));
+			} else if (alpha <= u_offset[4]) {
+				color_ = mix( u_colorArr[3], u_colorArr[4], remap( u_offset[3], u_offset[4], alpha ) );
+				color_ = color_ * mix( u_colorArr[3][3], u_colorArr[4][3], remap( u_offset[3], u_offset[4], alpha ));
+			} else if (alpha <= u_offset[5]) {
+				color_ = mix( u_colorArr[4], u_colorArr[5], remap( u_offset[4], u_offset[5], alpha ) );
+				color_ = color_ * mix( u_colorArr[4][3], u_colorArr[5][3], remap( u_offset[4], u_offset[5], alpha ));
+			} else if (alpha <= u_offset[6]) {
+				color_ = mix( u_colorArr[5], u_colorArr[6], remap( u_offset[5], u_offset[6], alpha ) );
+				color_ = color_ * mix( u_colorArr[5][3], u_colorArr[6][3], remap( u_offset[5], u_offset[6], alpha ));
+			} else if (alpha <= u_offset[7]) {
+				color_ = mix( u_colorArr[6], u_colorArr[7], remap( u_offset[6], u_offset[7], alpha ) );
+				color_ = color_ * mix( u_colorArr[6][3], u_colorArr[7][3], remap( u_offset[6], u_offset[7], alpha ));
+			} else if (alpha <= u_offset[8]) {
+				color_ = mix( u_colorArr[7], u_colorArr[8], remap( u_offset[7], u_offset[8], alpha ) );
+				color_ = color_ * mix( u_colorArr[7][3], u_colorArr[8][3], remap( u_offset[7], u_offset[8], alpha ));
+			} else if (alpha <= u_offset[9]) {
+				color_ = mix( u_colorArr[8], u_colorArr[9], remap( u_offset[8], u_offset[9], alpha ) );
+				color_ = color_ * mix( u_colorArr[8][3], u_colorArr[9][3], remap( u_offset[8], u_offset[9], alpha ));
+			} else if (alpha <= u_offset[10]) {
+				color_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], alpha ) );
+				color_ = color_ * mix( u_colorArr[9][3], u_colorArr[10][3], remap( u_offset[9], u_offset[10], alpha ));
+			} else {
+				color_ = vec4(0.0, 0.0, 0.0, 0.0);
+			}
+			color_ =  color_ * u_opacity;
+			if (color_.a < 0.0) {
+				color_.a = 0.0;
+			}
+			fragColor = color_;
+		} else {
+			fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+		}
+	}`
+	};
+
+	var imageShaders = {
+		vertex: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    in vec2 a_texCoord;
+                    uniform vec2 u_resolution;
+					uniform vec2 u_translate; 
+					uniform float u_zoom; 
+					uniform float u_angle; 
+					uniform float u_density;
+                    out vec2 v_texCoord;
+
+                    vec2 rotation(vec2 v, float a) {
+						float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); 
+						return m * v;
+					}
+
+                    void main() {
+                      	vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
+                      	zeroToOne.y = 1.0 - zeroToOne.y;
+						vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
+						zeroToTwo = zeroToTwo / u_zoom;
+						if (u_angle != 0.0) {
+							zeroToTwo = rotation(zeroToTwo, u_angle);
+						}
+
+						gl_Position = vec4(zeroToTwo , 0, 1);
+						v_texCoord = a_texCoord;
+                    }
+          		`,
+		fragment: `#version 300 es
+                    precision mediump float;
+                    uniform sampler2D u_image;
+                    in vec2 v_texCoord;
+                    out vec4 fragColor;
+                    void main() {
+                      fragColor = texture(u_image, v_texCoord);
+                    }
+                    `
+	};
 
 	return Heatmap;
 

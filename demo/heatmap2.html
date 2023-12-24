@@ -13,7 +13,7 @@
 
 <script type="module">
 
-import Heatmap from './../dist/visualHeatmap.esm.browser.js';
+import Heatmap from './../dist/visualHeatmap.esm.js';
 
 let data = [];
 let instance = Heatmap('#canvas', {
@@ -39,7 +39,7 @@ let instance = Heatmap('#canvas', {
         this.points = 100000;
         this.size = 5;
         this.opacity = 1.0;
-        this.blur = 1.0;
+        this.intensity = 1.0;
         this.transalteX = 0;
         this.transalteY = 0;
         this.zoom = 1.0;
@@ -55,8 +55,8 @@ let instance = Heatmap('#canvas', {
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
         instance.setOpacity(params.opacity);
     } );
-    gui.add( params, 'blur', 0, 1 ).onChange( function () {
-        instance.setBlur(params.blur);
+    gui.add( params, 'intensity', 0, 1 ).onChange( function () {
+        instance.setIntensity(params.intensity);
     } );
     gui.add( params, 'transalteX', -instance.width, instance.width ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);

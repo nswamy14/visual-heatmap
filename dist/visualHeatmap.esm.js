@@ -1,4 +1,9 @@
-export default function Heatmap (context, config = {}) {
+/*!
+      * Heatmap v1.0.5
+      * (c) 2023 Narayana Swamy (narayanaswamy14@gmail.com)
+      * @license BSD-3-Clause
+      */
+function Heatmap (context, config = {}) {
 	let ratio;
 	let buffer;
 	let posVec = [];
@@ -690,3 +695,5 @@ var imageShaders = {
                     }
                     `
 };
+
+export { Heatmap as default };

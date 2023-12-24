@@ -4,7 +4,7 @@
 <head>
     <title></title>
 </head>
-<body style="height: 100%">
+<body style="height: 100%; margin: 0px;">
 
 <div id="canvas" style="height: 100%;width:100%;background: white;" >
 </div>
@@ -20,18 +20,21 @@ let instance = Heatmap('#canvas', {
         max: 100,
         intensity: 1.0,
         zoom: 1.0,
+        backgroundImage: {
+            url: "./9267.jpg"
+        },
         gradient: [{
-            color: [255, 255, 255, 0.0],
+            color: [0, 0, 0, 0.0],
             offset: 0
         }, {
-            color: [212, 225, 255, 1.0],
+            color: [0, 0, 255, 0.2],
             offset: 0.2
         }, {
-            color: [166, 255, 115, 1.0],
+            color: [0, 255, 0, 0.5],
             offset: 0.45
         }, {
-            color: [255, 255, 0, 0.5],
-            offset: 0.75
+            color: [255, 255, 0, 0.75],
+            offset: 0.85
         }, {
             color: [255, 0, 0, 1.0],
             offset: 1.0
@@ -43,6 +46,7 @@ let instance = Heatmap('#canvas', {
         this.points = 10000;
         this.size = 100;
         this.opacity = 1.0;
+        this.min=50;
         this.intensity = 1.0;
         this.transalteX = 0;
         this.transalteY = 0;
@@ -53,7 +57,7 @@ let instance = Heatmap('#canvas', {
     };
 
     var params = new Params();
-	gui.add( params, 'size', 1, 100 ).onChange( function () {
+    gui.add( params, 'size', 1, 100 ).onChange( function () {
         instance.setSize(params.size);
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
@@ -61,6 +65,9 @@ let instance = Heatmap('#canvas', {
     } );
     gui.add( params, 'intensity', 0, 1 ).onChange( function () {
         instance.setIntensity(params.intensity);
+    } );
+    gui.add( params, 'min', 0, 100 ).onChange( function () {
+        instance.setMin(params.min);
     } );
     gui.add( params, 'transalteX', -instance.width, instance.width ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);
@@ -81,7 +88,7 @@ let instance = Heatmap('#canvas', {
             instance.addData([{
                 x: e.x,
                 y: e.y,
-                value: 20
+                value: 50 + Math.random() * 50
             }], true);
             dataPush = false;
             setTimeout(idleFlag, 20);
