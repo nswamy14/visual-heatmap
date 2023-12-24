@@ -19,7 +19,7 @@ Download source code from below links
 
 * [visualHeatmap.min.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.min.js)
 * [visualHeatmap.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.js)
-* [visualHeatmap.esm.browser.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.esm.browser.js)
+* [visualHeatmap.esm.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.esm.js)
 
 Visual-Heatmap is written in ES6 Modules. To import use below syntax
 
@@ -35,8 +35,16 @@ visualHeatmap provides a API to create context **WebGL**. API accepts container/
 ```Javascript
 let instance = Heatmap('#containerId', {
         size: 30.0,
-        max: 100,
-        blur: 1.0,
+        max: 100,  // if not set, will be derived from data
+        min: 0,  // if not set, will be derived from data
+        intensity: 1.0,
+        background: {
+            url: "path",
+            width: 100, // if not set, naturalWidth of the image will be considered
+            height: 100, // if not set, naturalWidth of the image will be considered
+            x: 0,
+            y: 0
+        },
         gradient: [{
             color: [0, 0, 255, 1.0],
             offset: 0
@@ -63,12 +71,14 @@ Object with config properties.
 {
 size : Radius of the data point, in pixels.
 max : Max data Value for relative gradient computation.
-blur : Blur factor.
+min : Min data Value for relative gradient computation.
+intensity : intensity factor.
 opacity : Opacity factor.
 rotationAngle : Rotation angle.
 translate : translate vector [x, y].
 zoom : Zoom Factor.
 gradient : Color Gradient, array of objects with color value and offset.
+background: To set background of the heatMap
 }
 ```
 
@@ -82,6 +92,9 @@ Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 ### instance.setMax()
 To set max data value, for relative gradient calculations.
+
+### instance.setMin()
+To set min data value, for relative gradient calculations.
 
 ### instance.setTranslate()
 Api to perform translate transformation on the canvas. Accepts array[x, y] as an input.
@@ -99,13 +112,17 @@ Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 Api to set point radius. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-### instance.setBlur()
-Api to set Blur factor. Accepts float value as an input.
+### instance.setIntensity()
+Api to set Intensity factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 ### instance.setOpacity()
 Api to set Opacity factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
+
+### instance.setBackgroundImage()
+Api to set Background image. Accepts Object with { Url, height, width, x, and y} properties as input
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap_withImage.html)
 
 ### instance.clear()
 Api to clear canvas.
