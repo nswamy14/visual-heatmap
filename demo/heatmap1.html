@@ -15,7 +15,7 @@
 <script type="text/javascript">
 let data = [];
 let instance = visualHeatmap('#canvas', {
-        size: 50.0,
+        size: 15.0,
         max: 100,
         intensity: 1.0,
         gradient: [{
@@ -39,7 +39,7 @@ let instance = visualHeatmap('#canvas', {
     var gui = new dat.GUI();
     var Params = function() {
         this.points = 100;
-        this.size = 50;
+        this.size = 15;
         this.opacity = 1.0;
         this.intensity = 1.0;
         this.transalteX = 0;
@@ -55,7 +55,7 @@ let instance = visualHeatmap('#canvas', {
         data = generateData(params.points);
         instance.renderData(data);
     } );
-    gui.add( params, 'size', 50, 100 ).onChange( function () {
+    gui.add( params, 'size', 15, 100 ).onChange( function () {
         instance.setSize(params.size);
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
@@ -77,12 +77,11 @@ let instance = visualHeatmap('#canvas', {
         instance.setRotationAngle(params.rotationAngle);
     } );
 
-    data = generateData(100);
+    data = generateData(100000);
     instance.renderData(data);
 
     function generateData (count) {
         var data = [];
-        let val = 50
         for (let i = 0; i < count; i++) {
             let val = Math.random() * 100
             data.push({
