@@ -30,7 +30,7 @@ let instance = Heatmap('#canvas', {
             color: [166, 255, 115, 1.0],
             offset: 0.45
         }, {
-            color: [255, 255, 0, 0.5],
+            color: [255, 255, 0, 1.0],
             offset: 0.75
         }, {
             color: [255, 0, 0, 1.0],
@@ -77,11 +77,10 @@ let instance = Heatmap('#canvas', {
 
     var dataPush = true;
     document.getElementById('canvas').addEventListener("mousemove", function(e){
-        if (dataPush) {
-            instance.addData([{
+        if (dataPush) {            instance.addData([{
                 x: e.x,
                 y: e.y,
-                value: 20
+                value: 10 +Math.random() * 50
             }], true);
             dataPush = false;
             setTimeout(idleFlag, 20);

@@ -7,8 +7,9 @@
 <body style="height: 100%">
 
 <div id="canvas" style="height: 100%;width:100%;">
-    <img src="world_map_PNG14.png" alt="Smiley face" style="position: absolute; width: 100%; height: 100%">
 </div>
+ <!-- include i2djs file : https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js  -->
+<script src="./../libs/i2d.js"></script>
 <script type="text/javascript" src="./../dist/visualHeatmap.js"></script>
 <script type="text/javascript" src="./dat.gui.min.js"></script>
 
@@ -18,6 +19,13 @@ let instance = visualHeatmap('#canvas', {
         size: 50.0,
         max: 100,
         intensity: 1.0,
+        backgroundImage: {
+            url: "./9267_.jpg",
+            height: 553.5* 2,
+            width: 864*2,
+            x: 0,
+            y: 0
+        },
         gradient: [{
             color: [0, 0, 0, 0.0],
             offset: 0
@@ -46,7 +54,8 @@ let instance = visualHeatmap('#canvas', {
         this.transalteY = 0;
         this.zoom = 1.0;
         this.rotationAngle = 0.0;
-        this.update = function() {
+        this.updateLabels = function() {
+            updateLabelPos();
         }
     };
 
@@ -54,31 +63,90 @@ let instance = visualHeatmap('#canvas', {
     gui.add( params, 'points', 1, 1000000 ).onChange( function () {
         data = generateData(params.points);
         instance.renderData(data);
+        params.updateLabels();
     } );
     gui.add( params, 'size', 50, 100 ).onChange( function () {
         instance.setSize(params.size);
+        params.updateLabels();
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
         instance.setOpacity(params.opacity);
+        params.updateLabels();
     } );
     gui.add( params, 'intensity', 0, 1 ).onChange( function () {
         instance.setIntensity(params.intensity);
+        params.updateLabels();
     } );
     gui.add( params, 'transalteX', -instance.width, instance.width ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);
+        params.updateLabels();
     } );
     gui.add( params, 'transalteY', -instance.height, instance.height ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);
+        params.updateLabels();
     } );
     gui.add( params, 'zoom', 0, 2 ).onChange( function () {
         instance.setZoom(params.zoom);
+        params.updateLabels();
     } );
     gui.add( params, 'rotationAngle', 0, Math.PI * 2 ).onChange( function () {
         instance.setRotationAngle(params.rotationAngle);
+        params.updateLabels();
     } );
 
     data = generateData(100);
     instance.renderData(data);
+
+
+    // rendering labels
+    let webglRenderer = i2d.webglLayer(
+                "#canvas",
+                {
+                    alpha: true,
+                },
+                {}
+            );
+
+
+    let labels = webglRenderer
+                .createEl({
+                    el: "group",
+                    attr: {
+                        shaderType: "text",
+                    },
+                    bbox: false,
+                })
+                .createEls(data, {
+                    el: "text",
+                    attr: {
+                        text: function (d) {
+                            return d.label;
+                        },
+                        x: function (d) {
+                            let pos = instance.projection(d);
+                            return pos.x- 25;
+                        },
+                        y: function (d) {
+                            let pos = instance.projection(d);
+                            return pos.y+ 10;
+                        },
+                    },
+                    style: {
+                        font: "12px Arial",
+                        fillStyle: function () {
+                            return "hsl(" + Math.round(Math.random() * 360) + ",100%, 50%)";
+                        },
+                    },
+                });
+
+
+    function updateLabelPos() {
+        labels.forEach(function (d) {
+            let pos = instance.projection(d);
+            this.setAttr('x', pos.x - 25);
+            this.setAttr('y', pos.y + 10);
+        })
+    }
 
     function generateData (count) {
         var data = [];
@@ -86,8 +154,8 @@ let instance = visualHeatmap('#canvas', {
         for (let i = 0; i < count; i++) {
             let val = Math.random() * 100
             data.push({
-                x: random(0 ,instance.width),
-                y: random(0 ,instance.height),
+                x: random(0 ,864*2),
+                y: random(0 ,553.5* 2),
                 velX: random(-0.5, 0.25),
                 velY: random(-0.5, 0.25),
                 value: val,

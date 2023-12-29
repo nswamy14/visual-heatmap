@@ -184,6 +184,7 @@ function Heatmap (context, config = {}) {
 				dataMinMaxValue.max = data[i].value;
 			}
 		}
+
 		return {
 			posVec: posVec,
 			rVec: rVec,
@@ -383,6 +384,35 @@ function Heatmap (context, config = {}) {
 		this.render(exData);
 	};
 
+	Chart.prototype.projection = function (data) {
+		// Pre-compute constants and repetitive calculations
+		    const zoomFactor = this.zoom || 0.1;
+		    const halfWidth = this.width / (2 * ratio);
+		    const halfHeight = this.height / (2 * ratio);
+		    const translateX = this.translate[0];
+		    const translateY = this.translate[1];
+		    const angle = this.angle;
+
+		    // Calculate the adjusted positions
+		    let posX = (data.x + translateX - halfWidth) / (halfWidth * zoomFactor);
+		    let posY = (data.y + translateY - halfHeight) / (halfHeight * zoomFactor);
+
+		    // Rotate the point if there's an angle
+		    if (angle !== 0.0) {
+		        const cosAngle = Math.cos(-angle);
+		        const sinAngle = Math.sin(-angle);
+		        const xNew = (cosAngle * posX) - (sinAngle * posY);
+		        posY = (sinAngle * posX) + (cosAngle * posY);
+		        posX = xNew;
+		    }
+
+		    // Scale back and adjust the position
+		    posX = (posX * halfWidth) + halfWidth;
+		    posY = (posY * halfHeight) + halfHeight;
+
+		    return { x: posX, y: posY };
+	};
+
 	Chart.prototype.render = function (exData) {
 		const ctx = this.ctx;
 		this.exData = exData;
@@ -483,32 +513,29 @@ function Heatmap (context, config = {}) {
 	}
 
 	function transCoOr (data) {
-		const widFat = this.width / (2 * ratio);
-		const heiFat = this.height / (2 * ratio);
-		data.x -= widFat;
-		data.y -= heiFat;
+		const zoomFactor = this.zoom || 0.1;
+		const halfWidth = this.width / (2 * ratio);
+		const halfHeight = this.height / (2 * ratio);
+		const angle = this.angle;
 
-		data.x /= widFat;
-		data.y /= heiFat;
-		data.x = data.x * (this.zoom);
-		data.y = data.y * (this.zoom);
+		// Combine operations to reduce the number of arithmetic steps
+		let posX = (data.x - halfWidth) / halfWidth * zoomFactor;
+		let posY = (data.y - halfHeight) / halfHeight * zoomFactor;
 
-		if (this.angle !== 0.0) {
-			const c = Math.cos(this.angle);
-			const s = Math.sin(this.angle);
-			const x = data.x;
-			const y = data.y;
-			data.x = (c * x) + (-s * y);
-			data.y = (s * x) + (c * y);
+		// Rotate the point if there's an angle
+		if (angle !== 0.0) {
+			const cosAngle = Math.cos(angle);
+			const sinAngle = Math.sin(angle);
+			const xNew = (cosAngle * posX) - (sinAngle * posY);
+			posY = (sinAngle * posX) + (cosAngle * posY);
+			posX = xNew;
 		}
 
-		data.x *= widFat;
-		data.y *= heiFat;
-		data.x += widFat;
-		data.y += heiFat;
+		// Scale back and adjust the position
+		posX = (posX * halfWidth) + halfWidth - this.translate[0];
+		posY = (posY * halfHeight) + halfHeight - this.translate[1];
 
-		data.x -= (this.translate[0]);
-		data.y -= (this.translate[1]);
+		    return { x: posX, y: posY };
 	}
 
 	function imageInstance (url, onLoad, onError) {
@@ -554,7 +581,11 @@ var GradShaders = {
 	void main() {
 		vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
 		vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
-		zeroToTwo = zeroToTwo / u_zoom;
+		float zoomFactor = u_zoom;
+		if (zoomFactor == 0.0) {
+			zoomFactor = 0.1;
+		}
+		zeroToTwo = zeroToTwo / zoomFactor;
 		if (u_angle != 0.0) {
 			zeroToTwo = rotation(zeroToTwo, u_angle);
 		}
@@ -676,7 +707,11 @@ var imageShaders = {
                       	vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
                       	zeroToOne.y = 1.0 - zeroToOne.y;
 						vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
-						zeroToTwo = zeroToTwo / u_zoom;
+						float zoomFactor = u_zoom;
+						if (zoomFactor == 0.0) {
+							zoomFactor = 0.1;
+						}
+						zeroToTwo = zeroToTwo / zoomFactor;
 						if (u_angle != 0.0) {
 							zeroToTwo = rotation(zeroToTwo, u_angle);
 						}
