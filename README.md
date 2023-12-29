@@ -90,33 +90,33 @@ Accepts an array of data points with 'x', 'y' and 'value'.  [Demo](https://nswam
 Accepts an array of data points with 'x', 'y' and 'value' and a flag to specify to apply existing canvas transformations on the newly added data points.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-### instance.setMax(<number>)
+### instance.setMax(number)
 To set max data value, for relative gradient calculations.
 
-### instance.setMin(<number>)
+### instance.setMin(number)
 To set min data value, for relative gradient calculations.
 
-### instance.setTranslate([<number>, <number>])
+### instance.setTranslate([number, number])
 Api to perform translate transformation on the canvas. Accepts array[x, y] as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-### instance.setZoom(<number>)
+### instance.setZoom(number)
 Api to perform zoom transformation on the canvas. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-### instance.setRotationAngle(<number>)
+### instance.setRotationAngle(number)
 Api to perform rotation transformation on the canvas. Accepts angle in radians.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-### instance.setSize(<number>)
+### instance.setSize(number)
 Api to set point radius. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-### instance.setIntensity(<number>)
+### instance.setIntensity(number)
 Api to set Intensity factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
-### instance.setOpacity(<number>)
+### instance.setOpacity(number)
 Api to set Opacity factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
