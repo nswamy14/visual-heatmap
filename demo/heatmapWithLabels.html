@@ -8,8 +8,7 @@
 
 <div id="canvas" style="height: 100%;width:100%;">
 </div>
- <!-- include i2djs file : https://raw.githubusercontent.com/I2djs/I2D/master/dist/i2d.js  -->
-<script src="./../libs/i2d.js"></script>
+<script type="text/javascript" src="https://i2djs.github.io/I2Djs/dist/i2d.js"></script>
 <script type="text/javascript" src="./../dist/visualHeatmap.js"></script>
 <script type="text/javascript" src="./dat.gui.min.js"></script>
 
@@ -45,7 +44,7 @@ let instance = visualHeatmap('#canvas', {
     });
 
     var gui = new dat.GUI();
-    var Params = function() {
+    var ParamsCon = function() {
         this.points = 100;
         this.size = 50;
         this.opacity = 1.0;
@@ -59,7 +58,7 @@ let instance = visualHeatmap('#canvas', {
         }
     };
 
-    var params = new Params();
+    var params = new ParamsCon();
     gui.add( params, 'points', 1, 1000000 ).onChange( function () {
         data = generateData(params.points);
         instance.renderData(data);

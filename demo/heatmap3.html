@@ -20,6 +20,13 @@ let instance = Heatmap('#canvas', {
         max: 100,
         intensity: 1.0,
         zoom: 1.0,
+        backgroundImage: {
+            url: "./world_map_PNG14.png",
+            // height: 553.5* 2,
+            // width: 864*2,
+            x: 0,
+            y: 0
+        },
         gradient: [{
             color: [255, 255, 255, 0.0],
             offset: 0
@@ -39,7 +46,7 @@ let instance = Heatmap('#canvas', {
     });
 
     var gui = new dat.GUI();
-    var Params = function() {
+    var ParamsCon = function() {
         this.points = 10000;
         this.size = 100;
         this.opacity = 1.0;
@@ -52,7 +59,7 @@ let instance = Heatmap('#canvas', {
         }
     };
 
-    var params = new Params();
+    var params = new ParamsCon();
 	gui.add( params, 'size', 1, 100 ).onChange( function () {
         instance.setSize(params.size);
     } );

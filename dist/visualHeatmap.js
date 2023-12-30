@@ -232,8 +232,8 @@
 
 			this.gradient = gradientMapper(config.gradient);
 			this.ctx = ctx;
-			this.width = width * ratio;
-			this.height = height * ratio;
+			this.width = width;
+			this.height = height;
 			this.layer = layer;
 			this.dom = res;
 			this.gradShadOP = createGradiantShader(this.ctx);
@@ -270,9 +270,9 @@
 			this.layer.setAttribute('width', width * ratio);
 			this.layer.style.height = `${height}px`;
 			this.layer.style.width = `${width}px`;
-			this.width = width * ratio;
-			this.height = height * ratio;
-			this.ctx.viewport(0, 0, this.width, this.height);
+			this.width = width;
+			this.height = height;
+			this.ctx.viewport(0, 0, this.width * ratio, this.height * ratio);
 
 			/* Perform update */
 			this.render(this.exData);
@@ -393,16 +393,19 @@
 		Chart.prototype.projection = function (data) {
 			// Pre-compute constants and repetitive calculations
 			    const zoomFactor = this.zoom || 0.1;
-			    const halfWidth = this.width / (2 * ratio);
-			    const halfHeight = this.height / (2 * ratio);
+			    const halfWidth = this.width / 2;
+			    const halfHeight = this.height / 2;
 			    const translateX = this.translate[0];
 			    const translateY = this.translate[1];
 			    const angle = this.angle;
+			    const aspect = this.width / this.height;
 
 			    // Calculate the adjusted positions
 			    let posX = (data.x + translateX - halfWidth) / (halfWidth * zoomFactor);
 			    let posY = (data.y + translateY - halfHeight) / (halfHeight * zoomFactor);
 
+			    posX *= aspect;
+			    
 			    // Rotate the point if there's an angle
 			    if (angle !== 0.0) {
 			        const cosAngle = Math.cos(-angle);
@@ -411,6 +414,8 @@
 			        posY = (sinAngle * posX) + (cosAngle * posY);
 			        posX = xNew;
 			    }
+
+			    posX *= 1.0 / aspect;
 
 			    // Scale back and adjust the position
 			    posX = (posX * halfWidth) + halfWidth;
@@ -426,7 +431,7 @@
 			ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
 
 			ctx.bindTexture(ctx.TEXTURE_2D, this.fbTexObj);
-			ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, this.width, this.height, 0, ctx.RGBA, ctx.UNSIGNED_BYTE, null);
+			ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, this.width * this.ratio, this.height * this.ratio, 0, ctx.RGBA, ctx.UNSIGNED_BYTE, null);
 			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
 			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
 			ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.LINEAR);
@@ -450,7 +455,7 @@
 			this.gradShadOP.attr[0].data = exData.posVec || [];
 			this.gradShadOP.attr[1].data = exData.rVec || [];
 
-			ctx.uniform2fv(this.gradShadOP.uniform.u_resolution, new Float32Array([this.width, this.height]));
+			ctx.uniform2fv(this.gradShadOP.uniform.u_resolution, new Float32Array([this.width * this.ratio, this.height * this.ratio]));
 			ctx.uniform2fv(this.gradShadOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
 			ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
 			ctx.uniform1f(this.gradShadOP.uniform.u_angle, this.angle);
@@ -475,7 +480,7 @@
 
 			ctx.useProgram(this.imageShaOP.program);
 
-			ctx.uniform2fv(this.imageShaOP.uniform.u_resolution, new Float32Array([this.width, this.height]));
+			ctx.uniform2fv(this.imageShaOP.uniform.u_resolution, new Float32Array([this.width * this.ratio, this.height * this.ratio]));
 			ctx.uniform2fv(this.imageShaOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
 			ctx.uniform1f(this.imageShaOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
 			ctx.uniform1f(this.imageShaOP.uniform.u_angle, this.angle);
@@ -520,8 +525,8 @@
 
 		function transCoOr (data) {
 			const zoomFactor = this.zoom || 0.1;
-			const halfWidth = this.width / (2 * ratio);
-			const halfHeight = this.height / (2 * ratio);
+			const halfWidth = this.width / 2;
+			const halfHeight = this.height / 2;
 			const angle = this.angle;
 
 			// Combine operations to reduce the number of arithmetic steps
@@ -579,9 +584,11 @@
 	uniform float u_density;
 	varying float v_i;
 
-	vec2 rotation(vec2 v, float a) {
+	vec2 rotation(vec2 v, float a, float aspect) {
 		float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); 
-		return m * v;
+		mat2 scaleMat    = mat2(aspect, 0.0, 0.0, 1.0);
+		mat2 scaleMatInv = mat2(1.0/aspect, 0.0, 0.0, 1.0);
+		return scaleMatInv * m * scaleMat * v;
 	}
 
 	void main() {
@@ -593,7 +600,7 @@
 		}
 		zeroToTwo = zeroToTwo / zoomFactor;
 		if (u_angle != 0.0) {
-			zeroToTwo = rotation(zeroToTwo, u_angle);
+			zeroToTwo = rotation(zeroToTwo, u_angle, u_resolution.x / u_resolution.y);
 		}
 		gl_Position = vec4(zeroToTwo , 0, 1);
 		gl_PointSize = u_size * u_density;
@@ -704,9 +711,11 @@
 					uniform float u_density;
                     out vec2 v_texCoord;
 
-                    vec2 rotation(vec2 v, float a) {
-						float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); 
-						return m * v;
+                    vec2 rotation(vec2 v, float a, float aspect) {
+						float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c);
+						mat2 scaleMat    = mat2(aspect, 0.0, 0.0, 1.0);
+						mat2 scaleMatInv = mat2(1.0/aspect, 0.0, 0.0, 1.0);
+						return scaleMatInv * m * scaleMat * v;
 					}
 
                     void main() {
@@ -719,7 +728,7 @@
 						}
 						zeroToTwo = zeroToTwo / zoomFactor;
 						if (u_angle != 0.0) {
-							zeroToTwo = rotation(zeroToTwo, u_angle);
+							zeroToTwo = rotation(zeroToTwo, u_angle * -1.0, u_resolution.x / u_resolution.y);
 						}
 
 						gl_Position = vec4(zeroToTwo , 0, 1);
