@@ -123,11 +123,11 @@ Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 ### instance.setBackgroundImage({ url: , x: , y: , height: , width: })
 Api to set Background image. Accepts Object with { Url, height, width, x, and y} properties as input
-Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap_withImage.html)
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 ### instance.projection({x: , y: })
 Api to get projected co-ordinates relative to the heatmap layer.
-Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmapWithLabels.html)
 
 ### instance.clear()
 Api to clear canvas.
