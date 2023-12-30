@@ -7,18 +7,25 @@
 <body style="height: 100%">
 
 <div id="canvas" style="height: 100%;width:100%;background: #000;">
-    <img src="world_map_PNG14.png" alt="Smiley face" style="position: absolute; width: 100%; height: 100%">
+    <!-- <img src="world_map_PNG14.png" alt="Smiley face" style="position: absolute; width: 100%; height: 100%"> -->
 </div>
 <script type="text/javascript" src="./dat.gui.min.js"></script>
 
 <script type="module">
 
-import Heatmap from './../dist/visualHeatmap.esm.browser.js';
+import Heatmap from './../dist/visualHeatmap.esm.js';
 
 let data = [];
 let instance = Heatmap('#canvas', {
-        size: 5.0,
+        size: 15.0,
         max: 100,
+        backgroundImage: {
+            url: "./world_map_PNG14.png",
+            // height: 553.5* 2,
+            // width: 864*2,
+            x: 0,
+            y: 0
+        },
         gradient: [{
             color: [0, 0, 0, 0.0],
             offset: 0.0
@@ -35,11 +42,11 @@ let instance = Heatmap('#canvas', {
     });
 
     var gui = new dat.GUI();
-    var Params = function() {
+    var ParamsCon = function() {
         this.points = 100000;
-        this.size = 5;
+        this.size = 15;
         this.opacity = 1.0;
-        this.blur = 1.0;
+        this.intensity = 1.0;
         this.transalteX = 0;
         this.transalteY = 0;
         this.zoom = 1.0;
@@ -48,15 +55,15 @@ let instance = Heatmap('#canvas', {
         }
     };
 
-    var params = new Params();
-	gui.add( params, 'size', 1, 100 ).onChange( function () {
+    var params = new ParamsCon();
+	gui.add( params, 'size', 10, 100 ).onChange( function () {
         instance.setSize(params.size);
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
         instance.setOpacity(params.opacity);
     } );
-    gui.add( params, 'blur', 0, 1 ).onChange( function () {
-        instance.setBlur(params.blur);
+    gui.add( params, 'intensity', 0, 1 ).onChange( function () {
+        instance.setIntensity(params.intensity);
     } );
     gui.add( params, 'transalteX', -instance.width, instance.width ).onChange( function () {
         instance.setTranslate([params.transalteX, params.transalteY]);

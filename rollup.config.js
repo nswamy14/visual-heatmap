@@ -1,7 +1,6 @@
-import commonjs from 'rollup-plugin-commonjs';
-import { eslint } from 'rollup-plugin-eslint';
-import { terser } from 'rollup-plugin-terser';
-import buble from 'rollup-plugin-buble';
+import commonjs from "@rollup/plugin-commonjs";
+import eslint from '@rollup/plugin-eslint';
+import { terser } from "rollup-plugin-terser";
 
 const version = process.env.VERSION || require('./package.json').version;
 const author = require('./package.json').author;
@@ -18,7 +17,7 @@ export default [{
 	input: './main.js',
 	output: [{
 		banner,
-		file: 'dist/visualHeatmap.esm.browser.js',
+		file: 'dist/visualHeatmap.esm.js',
 		format: 'esm',
 		name: 'visualHeatmap'
 	}, {
@@ -36,29 +35,13 @@ export default [{
 }, {
 	input: './main.js',
 	output: [{
-		banner,
-		file: 'dist/visualHeatmap.legacy.js',
-		format: 'umd',
-		name: 'visualHeatmap'
-	}],
-	plugins: [
-		commonjs(),
-		eslint({
-			fix: true,
-			throwOnError: true
-		}),
-		buble()
-	]
-}, {
-	input: './main.js',
-	output: [{
 		file: 'dist/visualHeatmap.min.js',
 		banner,
 		format: 'umd',
 		name: 'visualHeatmap',
 		compact: true
 	}, {
-		file: 'dist/visualHeatmap.esm.browser.min.js',
+		file: 'dist/visualHeatmap.esm.min.js',
 		banner,
 		format: 'esm',
 		name: 'visualHeatmap',
@@ -71,21 +54,4 @@ export default [{
 			fix: true,
 			throwOnError: true
 		})]
-}, {
-	input: './main.js',
-	output: [{
-		banner,
-		file: 'dist/visualHeatmap.legacy.min.js',
-		format: 'umd',
-		name: 'visualHeatmap'
-	}],
-	plugins: [
-		commonjs(),
-		eslint({
-			fix: true,
-			throwOnError: true
-		}),
-		buble(),
-		terser()
-	]
 }];
