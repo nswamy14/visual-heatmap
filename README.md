@@ -70,16 +70,16 @@ let instance = Heatmap('#containerId', {
 Object with config properties.
 ```
 {
-size : Radius of the data point, in pixels.
-max : Max data Value for relative gradient computation.
-min : Min data Value for relative gradient computation.
-intensity : intensity factor.
-opacity : Opacity factor.
-rotationAngle : Rotation angle.
-translate : translate vector [x, y].
-zoom : Zoom Factor.
-gradient : Color Gradient, array of objects with color value and offset.
-background: To set background of the heatMap
+     size : Radius of the data point, in pixels.
+     max : Max data Value for relative gradient computation.
+     min : Min data Value for relative gradient computation.
+     intensity : intensity factor.
+     opacity : Opacity factor.
+     rotationAngle : Rotation angle.
+     translate : translate vector [x, y].
+     zoom : Zoom Factor.
+     gradient : Color Gradient, array of objects with color value and offset.
+     background: To set background of the heatMap
 }
 ```
 
