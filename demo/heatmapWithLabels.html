@@ -45,7 +45,6 @@ let instance = visualHeatmap('#canvas', {
 
     var gui = new dat.GUI();
     var ParamsCon = function() {
-        this.points = 100;
         this.size = 50;
         this.opacity = 1.0;
         this.intensity = 1.0;
@@ -59,11 +58,6 @@ let instance = visualHeatmap('#canvas', {
     };
 
     var params = new ParamsCon();
-    gui.add( params, 'points', 1, 1000000 ).onChange( function () {
-        data = generateData(params.points);
-        instance.renderData(data);
-        params.updateLabels();
-    } );
     gui.add( params, 'size', 50, 100 ).onChange( function () {
         instance.setSize(params.size);
         params.updateLabels();
@@ -93,7 +87,7 @@ let instance = visualHeatmap('#canvas', {
         params.updateLabels();
     } );
 
-    data = generateData(100);
+    data = generateData(200);
     instance.renderData(data);
 
 
