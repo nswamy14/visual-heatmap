@@ -6,7 +6,6 @@ module.exports = {
 	},
 	globals: {
 		'Image': true,
-		'Path2D': true,
 		'Canvas': true
 	},
 	rules: {
