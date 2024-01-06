@@ -1,8 +1,7 @@
 # Visual-Heatmap Js [![npm](https://img.shields.io/npm/v/visual-heatmap.svg)](https://www.npmjs.com/package/visual-heatmap) [![Downloads](https://img.shields.io/npm/dm/visual-heatmap.svg)](https://www.npmjs.com/package/visual-heatmap)
-Open source javascript module for rendering high performance, large scale heatmap.
+Visual Heatmap, an open-source JavaScript module, emerges as a powerful tool designed to render large-scale heatmaps with exceptional performance. This framework is based on advanced graphical rendering - WebGL/Shaders. It can render 500,000+ data points with a good framerate.
 
-Visual Heatmap is based on advanced graphical rendering context - WebGL/Shaders. It can render 500,000+ data points with a good framerate.
-
+### Examples:
 <p align="center">
 <a href="https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html"> <label>Click me<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap3.png" width=1200> </a>
 <a href="https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html"> <label>Click me<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap1.png" width=1200></a>
@@ -24,7 +23,7 @@ Download source code from below links
 
 Visual-Heatmap is written in ES6 Modules. To import use below syntax
 
-Importing everthing into namespace
+Importing everything into namespace
 ```
 import Heatmap from 'visual-heatmap'
 ```
