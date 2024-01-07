@@ -17,7 +17,7 @@ import Heatmap from './../dist/visualHeatmap.esm.js';
 
 let data = [];
 let instance = Heatmap('#canvas', {
-        size: 15.0,
+        size: 25.0,
         max: 100,
         backgroundImage: {
             url: "./world_map_PNG14.png",
@@ -43,8 +43,8 @@ let instance = Heatmap('#canvas', {
 
     var gui = new dat.GUI();
     var ParamsCon = function() {
-        this.points = 100000;
-        this.size = 15;
+        this.points = 10000;
+        this.size = 25;
         this.opacity = 1.0;
         this.intensity = 1.0;
         this.transalteX = 0;
@@ -56,7 +56,7 @@ let instance = Heatmap('#canvas', {
     };
 
     var params = new ParamsCon();
-	gui.add( params, 'size', 10, 100 ).onChange( function () {
+	gui.add( params, 'size', 5, 100 ).onChange( function () {
         instance.setSize(params.size);
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
@@ -93,7 +93,7 @@ let instance = Heatmap('#canvas', {
         }
         return data;
     }
-    data = generateData(100000);
+    data = generateData(10000);
     call();
 
     function call () {

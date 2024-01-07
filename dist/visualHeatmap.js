@@ -1,6 +1,6 @@
 /*!
       * Heatmap v1.0.5
-      * (c) 2023 Narayana Swamy (narayanaswamy14@gmail.com)
+      * (c) 2024 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
 (function (global, factory) {
@@ -574,15 +574,16 @@
 	}
 
 	var GradShaders = {
-		vertex: `attribute vec2 a_position;
-	attribute float a_intensity;
+		vertex: `#version 300 es
+	in vec2 a_position;
+	in float a_intensity;
 	uniform float u_size;
 	uniform vec2 u_resolution;
 	uniform vec2 u_translate; 
 	uniform float u_zoom; 
 	uniform float u_angle; 
 	uniform float u_density;
-	varying float v_i;
+	out float v_i;
 
 	vec2 rotation(vec2 v, float a, float aspect) {
 		float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); 
@@ -606,11 +607,13 @@
 		gl_PointSize = u_size * u_density;
 		v_i = a_intensity;
 	}`,
-		fragment: `precision mediump float;
+		fragment: `#version 300 es
+	precision mediump float;
 	uniform float u_max;
 	uniform float u_min;
 	uniform float u_intensity;
-	varying float v_i;
+	in float v_i;
+	out vec4 fragColor;
 	void main() {
 		float r = 0.0; 
 		vec2 cxy = 2.0 * gl_PointCoord - 1.0;
@@ -620,83 +623,64 @@
 			deno = 1.0;
 		}
 		if(r <= 1.0) {
-			gl_FragColor = vec4(0, 0, 0, ((v_i - u_min) / (deno)) * u_intensity * (1.0 - sqrt(r)));
+			fragColor = vec4(0, 0, 0, ((v_i - u_min) / (deno)) * u_intensity * (1.0 - sqrt(r)));
 		}
 	}`
 	};
 
 	var ColorShader = {
 		vertex: `#version 300 es
-	precision highp float;
-	in vec2 a_texCoord;
-	out vec2 v_texCoord;
-	void main() {
-		vec2 clipSpace = a_texCoord * 2.0 - 1.0;
-		gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-		v_texCoord = a_texCoord;
-	}`,
+				precision highp float;
+				in vec2 a_texCoord;
+				out vec2 v_texCoord;
+				void main() {
+					vec2 clipSpace = a_texCoord * 2.0 - 1.0;
+					gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+					v_texCoord = a_texCoord;
+				}
+	`,
 		fragment: `#version 300 es
-	precision mediump float;
-	in vec2 v_texCoord;
-	out vec4 fragColor;
-	uniform sampler2D u_framebuffer;
-	uniform vec4 u_colorArr[11];
-	uniform float u_colorCount;
-	uniform float u_opacity;
-	uniform float u_offset[11];
+					precision mediump float;
+					in vec2 v_texCoord;
+					out vec4 fragColor;
+					uniform sampler2D u_framebuffer;
+					uniform vec4 u_colorArr[20];
+					uniform float u_colorCount;
+					uniform float u_opacity;
+					uniform float u_offset[20];
 
-	float remap ( float minval, float maxval, float curval ) {
-		return ( curval - minval ) / ( maxval - minval );
-	}
+					float remap ( float minval, float maxval, float curval ) {
+						return ( curval - minval ) / ( maxval - minval );
+					}
 
-	void main() {
-		float alpha = texture(u_framebuffer, v_texCoord.xy).a;
-		if (alpha > 0.0 && alpha <= 1.0) {
-			vec4 color_;
-			if (alpha <= u_offset[0]) {
-				color_ = u_colorArr[0];
-			} else if (alpha <= u_offset[1]) {
-				color_ = mix( u_colorArr[0], u_colorArr[1], remap( u_offset[0], u_offset[1], alpha ) );
-				color_ = color_ * mix( u_colorArr[0][3], u_colorArr[1][3], remap( u_offset[0], u_offset[1], alpha ));
-			} else if (alpha <= u_offset[2]) {
-				color_ = mix( u_colorArr[1], u_colorArr[2], remap( u_offset[1], u_offset[2], alpha ) );
-				color_ = color_ * mix( u_colorArr[1][3], u_colorArr[2][3], remap( u_offset[1], u_offset[2], alpha ));
-			} else if (alpha <= u_offset[3]) {
-				color_ = mix( u_colorArr[2], u_colorArr[3], remap( u_offset[2], u_offset[3], alpha ) );
-				color_ = color_ * mix( u_colorArr[2][3], u_colorArr[3][3], remap( u_offset[2], u_offset[3], alpha ));
-			} else if (alpha <= u_offset[4]) {
-				color_ = mix( u_colorArr[3], u_colorArr[4], remap( u_offset[3], u_offset[4], alpha ) );
-				color_ = color_ * mix( u_colorArr[3][3], u_colorArr[4][3], remap( u_offset[3], u_offset[4], alpha ));
-			} else if (alpha <= u_offset[5]) {
-				color_ = mix( u_colorArr[4], u_colorArr[5], remap( u_offset[4], u_offset[5], alpha ) );
-				color_ = color_ * mix( u_colorArr[4][3], u_colorArr[5][3], remap( u_offset[4], u_offset[5], alpha ));
-			} else if (alpha <= u_offset[6]) {
-				color_ = mix( u_colorArr[5], u_colorArr[6], remap( u_offset[5], u_offset[6], alpha ) );
-				color_ = color_ * mix( u_colorArr[5][3], u_colorArr[6][3], remap( u_offset[5], u_offset[6], alpha ));
-			} else if (alpha <= u_offset[7]) {
-				color_ = mix( u_colorArr[6], u_colorArr[7], remap( u_offset[6], u_offset[7], alpha ) );
-				color_ = color_ * mix( u_colorArr[6][3], u_colorArr[7][3], remap( u_offset[6], u_offset[7], alpha ));
-			} else if (alpha <= u_offset[8]) {
-				color_ = mix( u_colorArr[7], u_colorArr[8], remap( u_offset[7], u_offset[8], alpha ) );
-				color_ = color_ * mix( u_colorArr[7][3], u_colorArr[8][3], remap( u_offset[7], u_offset[8], alpha ));
-			} else if (alpha <= u_offset[9]) {
-				color_ = mix( u_colorArr[8], u_colorArr[9], remap( u_offset[8], u_offset[9], alpha ) );
-				color_ = color_ * mix( u_colorArr[8][3], u_colorArr[9][3], remap( u_offset[8], u_offset[9], alpha ));
-			} else if (alpha <= u_offset[10]) {
-				color_ = mix( u_colorArr[9], u_colorArr[10], remap( u_offset[9], u_offset[10], alpha ) );
-				color_ = color_ * mix( u_colorArr[9][3], u_colorArr[10][3], remap( u_offset[9], u_offset[10], alpha ));
-			} else {
-				color_ = vec4(0.0, 0.0, 0.0, 0.0);
-			}
-			color_ =  color_ * u_opacity;
-			if (color_.a < 0.0) {
-				color_.a = 0.0;
-			}
-			fragColor = color_;
-		} else {
-			fragColor = vec4(0.0, 0.0, 0.0, 0.0);
-		}
-	}`
+					void main() {
+						float alpha = texture(u_framebuffer, v_texCoord.xy).a;
+						if (alpha > 0.0 && alpha <= 1.0) {
+							vec4 color_;
+
+							if (alpha <= u_offset[0]) {
+								color_ = u_colorArr[0];
+							} else {
+								for (int i = 1; i <= 10; ++i) {
+									if (alpha <= u_offset[i]) {
+										color_ = mix( u_colorArr[i - 1], u_colorArr[i], remap( u_offset[i - 1], u_offset[i], alpha ) );
+										color_ = color_ * mix( u_colorArr[i - 1][3], u_colorArr[i][3], remap( u_offset[i - 1], u_offset[i], alpha ));
+
+										break;
+									}
+								}
+							}
+
+							color_ =  color_ * u_opacity;
+							if (color_.a < 0.0) {
+								color_.a = 0.0;
+							}
+							fragColor = color_;
+						} else {
+							fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+						}
+					}
+		`
 	};
 
 	var imageShaders = {

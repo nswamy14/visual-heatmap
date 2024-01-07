@@ -1,8 +1,7 @@
 # Visual-Heatmap Js [![npm](https://img.shields.io/npm/v/visual-heatmap.svg)](https://www.npmjs.com/package/visual-heatmap) [![Downloads](https://img.shields.io/npm/dm/visual-heatmap.svg)](https://www.npmjs.com/package/visual-heatmap)
-Open source javascript module for rendering high performance, large scale heatmap.
+Visual Heatmap, an open-source JavaScript module, emerges as a powerful tool designed to render large-scale heatmaps with exceptional performance. This framework is based on advanced graphical rendering - WebGL/Shaders. It can render 500,000+ data points with a good framerate.
 
-Visual Heatmap is based on advanced graphical rendering context - WebGL/Shaders. It can render 500,000+ data points with a good framerate.
-
+### Examples:
 <p align="center">
 <a href="https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html"> <label>Click me<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap3.png" width=1200> </a>
 <a href="https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html"> <label>Click me<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap1.png" width=1200></a>
@@ -24,7 +23,7 @@ Download source code from below links
 
 Visual-Heatmap is written in ES6 Modules. To import use below syntax
 
-Importing everthing into namespace
+Importing everything into namespace
 ```
 import Heatmap from 'visual-heatmap'
 ```
@@ -40,9 +39,9 @@ let instance = Heatmap('#containerId', {
         min: 0,  // if not set, will be derived from data
         intensity: 1.0,
         background: {
-            url: "path",
-            width: 100, // if not set, naturalWidth of the image will be considered
-            height: 100, // if not set, naturalWidth of the image will be considered
+            url: "urlPath",
+            width: 100, // if not set, viewport width of the image will be considered
+            height: 100, // if not set, viewport height of the image will be considered
             x: 0,
             y: 0
         },
@@ -70,16 +69,16 @@ let instance = Heatmap('#containerId', {
 Object with config properties.
 ```
 {
-size : Radius of the data point, in pixels.
-max : Max data Value for relative gradient computation.
-min : Min data Value for relative gradient computation.
-intensity : intensity factor.
-opacity : Opacity factor.
-rotationAngle : Rotation angle.
-translate : translate vector [x, y].
-zoom : Zoom Factor.
-gradient : Color Gradient, array of objects with color value and offset.
-background: To set background of the heatMap
+     size : Radius of the data point, in pixels.
+     max : Max data Value for relative gradient computation.
+     min : Min data Value for relative gradient computation.
+     intensity : intensity factor.
+     opacity : Opacity factor.
+     rotationAngle : Rotation angle.
+     translate : translate vector [x, y].
+     zoom : Zoom Factor.
+     gradient : Color Gradient, array of objects with color value and offset.
+     background: To set background of the heatMap
 }
 ```
 
@@ -123,11 +122,11 @@ Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 ### instance.setBackgroundImage({ url: , x: , y: , height: , width: })
 Api to set Background image. Accepts Object with { Url, height, width, x, and y} properties as input
-Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap_withImage.html)
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 ### instance.projection({x: , y: })
 Api to get projected co-ordinates relative to the heatmap layer.
-Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
+Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmapWithLabels.html)
 
 ### instance.clear()
 Api to clear canvas.

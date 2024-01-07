@@ -60,7 +60,7 @@ let instance = Heatmap('#canvas', {
     };
 
     var params = new ParamsCon();
-	gui.add( params, 'size', 1, 100 ).onChange( function () {
+	gui.add( params, 'size', 1, 200 ).onChange( function () {
         instance.setSize(params.size);
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
