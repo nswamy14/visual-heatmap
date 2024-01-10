@@ -272,8 +272,8 @@
 			this.layer.style.width = `${width}px`;
 			this.width = width;
 			this.height = height;
-			this.ctx.viewport(0, 0, this.width * ratio, this.height * ratio);
-
+			this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+			console.log('resize');
 			/* Perform update */
 			this.render(this.exData);
 		};
@@ -454,7 +454,7 @@
 			this.max = dataMaxValue !== null ? dataMaxValue : exData?.minMax?.max ?? 0;
 			this.gradShadOP.attr[0].data = exData.posVec || [];
 			this.gradShadOP.attr[1].data = exData.rVec || [];
-
+			console.log(this.width, this.height);
 			ctx.uniform2fv(this.gradShadOP.uniform.u_resolution, new Float32Array([this.width * this.ratio, this.height * this.ratio]));
 			ctx.uniform2fv(this.gradShadOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
 			ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
@@ -661,7 +661,7 @@
 							if (alpha <= u_offset[0]) {
 								color_ = u_colorArr[0];
 							} else {
-								for (int i = 1; i <= 10; ++i) {
+								for (int i = 1; i <= 20; ++i) {
 									if (alpha <= u_offset[i]) {
 										color_ = mix( u_colorArr[i - 1], u_colorArr[i], remap( u_offset[i - 1], u_offset[i], alpha ) );
 										color_ = color_ * mix( u_colorArr[i - 1][3], u_colorArr[i][3], remap( u_offset[i - 1], u_offset[i], alpha ));

@@ -108,6 +108,12 @@ let instance = visualHeatmap('#canvas', {
         return num;
     }
 
+    window.addEventListener("resize", function () {
+        if (instance && document.getElementById("canvas")) {
+            instance.resize();
+        }
+    });
+
 
 
 </script>

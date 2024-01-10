@@ -2,7 +2,7 @@
   "name": "visual-heatmap",
   "version": "1.0.5",
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
-  "module": "./main.js",
+  "module": "./src/main.js",
   "main": "./dist/visualHeatmap.esm.js",
   "scripts": {
     "dev": "rollup -wm -c rollup.config.js",
