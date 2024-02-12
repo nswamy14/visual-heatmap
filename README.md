@@ -3,10 +3,10 @@ Visual Heatmap, an open-source JavaScript module, emerges as a powerful tool des
 
 ### Examples:
 <p align="center">
-<a href="https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html"> <label>Click me<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap3.png" width=1200> </a>
-<a href="https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html"> <label>Click me<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap1.png" width=1200></a>
-<a href="https://nswamy14.github.io/visual-heatmap/demo/heatmap2.html"> <label>Click me<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap2.png" width=1200> </a>
-<a href="https://nswamy14.github.io/visual-heatmap/demo/heatmapWithLabels.html"> <label>Click me<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap4.png" width=1200> </a>
+<a href="https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html"> <label>Click<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap3.png" width=1200> </a>
+<a href="https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html"> <label>Click<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap1.png" width=1200></a>
+<a href="https://nswamy14.github.io/visual-heatmap/demo/heatmap2.html"> <label>Click<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap2.png" width=1200> </a>
+<a href="https://nswamy14.github.io/visual-heatmap/demo/heatmapWithLabels.html"> <label>Click<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap4.png" width=1200> </a>
 </p>
 
 ## Installing
