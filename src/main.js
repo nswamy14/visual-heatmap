@@ -280,6 +280,11 @@ export default function Heatmap (context, config = {}) {
 		this.render(this.exData);
 	};
 
+	Chart.prototype.setGradient = function (gradient) {
+                this.gradient = gradientMapper(gradient);
+                this.render(this.exData);
+        };
+
 	Chart.prototype.setTranslate = function (translate) {
 		this.translate = (translate.length === 2) ? translate : [0, 0];
 		this.render(this.exData);
