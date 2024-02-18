@@ -1,5 +1,5 @@
 /*!
-      * Heatmap v1.0.5
+      * Heatmap v1.1.0
       * (c) 2024 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
@@ -10,29 +10,63 @@ function Heatmap (context, config = {}) {
 	let buffer2;
 	let rVec = [];
 	let pLen = 0;
-	let dataMinValue = null;
-	let dataMaxValue = null;
 	let maxTextureSize = null;
 	let imgWidth;
 	let imgHeight;
+	let hearmapExData;
+	let imageConfig;
+	let configMin = 0;
+	let configMax = 0;
+
+
+	function isNullUndefined (val) {
+		return val === null || val === undefined;
+	}
+
+	function isNotNumber (val) {
+		return typeof val !== 'number';
+	}
+
+	function isSortedAscending (arr) {
+		for (let i = 0; i < arr.length - 1; i++) {
+			if (arr[i + 1].offset - arr[i].offset < 0) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 
 	function gradientMapper (grad) {
-		const arr = [];
-		const gradLength = grad.length;
-		const offSetsArray = [];
+		if (grad.constructor !== Array) {
+			throw new Error('Invalid gradient: Wrong Gradient type, expected Array');
+		}
 
-		grad.forEach(function (d) {
-			arr.push(d.color[0] / 255);
-			arr.push(d.color[1] / 255);
-			arr.push(d.color[2] / 255);
-			arr.push(d.color[3] === undefined ? 1.0 : d.color[3]);
-			offSetsArray.push(d.offset);
+		if (grad.length < 2) {
+			throw new Error('Invalid gradient: 2 or more values expected');
+		}
+
+		if (!isSortedAscending(grad)) {
+			throw new Error('Invalid gradient: Gradient is not sorted');
+		}
+
+		const gradLength = grad.length;
+		const values = new Float32Array(gradLength * 4);
+		const offsets = new Array(gradLength);
+
+		grad.forEach(function (d, i) {
+			const baseIndex = i * 4;
+			values[baseIndex] = d.color[0] / 255;
+	        values[baseIndex + 1] = d.color[1] / 255;
+	        values[baseIndex + 2] = d.color[2] / 255;
+	        values[baseIndex + 3] = d.color[3] !== undefined ? d.color[3] : 1.0;
+			offsets[i] = d.offset;
 		});
+
 		return {
-			value: new Float32Array(arr),
+			value: values,
 			length: gradLength,
-			offset: offSetsArray
+			offset: offsets
 		};
 	}
 
@@ -43,8 +77,8 @@ function Heatmap (context, config = {}) {
 		var compiled = ctx.getShaderParameter(shader, ctx.COMPILE_STATUS);
 		if (!compiled) {
 			var lastError = ctx.getShaderInfoLog(shader);
-			console.error("*** Error compiling shader '" + shader + "':" + lastError);
 			ctx.deleteShader(shader);
+			throw new Error("*** Error compiling shader '" + shader + "':" + lastError);
 		}
 		return shader;
 	}
@@ -62,9 +96,8 @@ function Heatmap (context, config = {}) {
 		var linked = ctx.getProgramParameter(program, ctx.LINK_STATUS);
 		if (!linked) {
 			var lastError = ctx.getProgramInfoLog(program);
-			console.error('Error in program linking:' + lastError);
 			ctx.deleteProgram(program);
-			return null;
+			throw new Error('Error in program linking:' + lastError);
 		} else {
 			return program;
 		}
@@ -193,68 +226,111 @@ function Heatmap (context, config = {}) {
 	}
 
 	function Chart (context, config) {
-		let res;
-		if (typeof context === 'string') {
-			res = document.querySelector(context);
-		} else if (context instanceof Element) {
-			res = context;
-		} else {
-			throw new Error('Context must be either a string or an Element');
+		try {
+			let res;
+			if (typeof context === 'string') {
+				res = document.querySelector(context);
+			} else if (context instanceof Element) {
+				res = context;
+			} else {
+				throw new Error('Context must be either a string or an Element');
+			}
+			const height = res.clientHeight;
+			const width = res.clientWidth;
+			const layer = document.createElement('canvas');
+			const ctx = layer.getContext('webgl2', {
+				premultipliedAlpha: false,
+				depth: false,
+				antialias: true,
+				alpha: true,
+				preserveDrawingBuffer: false
+			});
+			ratio = getPixlRatio(ctx);
+			ctx.clearColor(0, 0, 0, 0);
+			ctx.enable(ctx.BLEND);
+			ctx.blendEquation(ctx.FUNC_ADD);
+			ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
+			ctx.depthMask(true);
+			layer.setAttribute('height', height * ratio);
+			layer.setAttribute('width', width * ratio);
+			layer.style.height = `${height}px`;
+			layer.style.width = `${width}px`;
+			layer.style.position = 'absolute';
+			res.appendChild(layer);
+
+			this.ctx = ctx;
+			this.width = width;
+			this.height = height;
+			this.layer = layer;
+			this.dom = res;
+			this.gradShadOP = createGradiantShader(this.ctx);
+			this.colorShadOP = createColorShader(this.ctx);
+			this.imageShaOP = createImageShader(this.ctx);
+			this.fbTexObj = ctx.createTexture();
+			this.fbo = ctx.createFramebuffer();
+
+			if (!isNullUndefined(config.size)) {
+				this.setSize(config.size);
+			} else {
+				this.size = 20.0;
+			}
+
+			if (!isNullUndefined(config.max)) {
+				this.setMax(config.max);
+			} else {
+				configMax = null;
+			}
+
+			if (!isNullUndefined(config.min)) {
+				this.setMin(config.min);
+			} else {
+				configMin = null;
+			}
+
+			if (!isNullUndefined(config.intensity)) {
+				this.setIntensity(config.intensity);
+			} else {
+				this.intensity = 1.0;
+			}
+
+			if (!isNullUndefined(config.translate)) {
+				this.setTranslate(config.translate);
+			} else {
+				this.translate = [0, 0];
+			}
+
+			if (!isNullUndefined(config.zoom)) {
+				this.setZoom(config.zoom);
+			} else {
+				this.zoom = 1.0;
+			}
+
+			if (!isNullUndefined(config.angle)) {
+				this.setRotationAngle(config.angle);
+			} else {
+				this.angle = 0.0;
+			}
+
+			if (!isNullUndefined(config.opacity)) {
+				this.setOpacity(config.opacity);
+			} else {
+				this.opacity = 1.0;
+			}
+
+			this.gradient = gradientMapper(config.gradient);
+
+			this.ratio = ratio;
+
+			if (config.backgroundImage && config.backgroundImage.url) {
+				this.setBackgroundImage(config.backgroundImage);
+			}
+
+			this.heatmapData = [];
+
+			this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+		} catch (error) {
+			console.error(error);
 		}
-		const height = res.clientHeight;
-		const width = res.clientWidth;
-		const layer = document.createElement('canvas');
-		const ctx = layer.getContext('webgl2', {
-			premultipliedAlpha: false,
-			depth: false,
-			antialias: true,
-			alpha: true,
-			preserveDrawingBuffer: false
-		});
-		ratio = getPixlRatio(ctx);
-		ctx.clearColor(0, 0, 0, 0);
-		ctx.enable(ctx.BLEND);
-		ctx.blendEquation(ctx.FUNC_ADD);
-		ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
-		ctx.depthMask(true);
-		layer.setAttribute('height', height * ratio);
-		layer.setAttribute('width', width * ratio);
-		layer.style.height = `${height}px`;
-		layer.style.width = `${width}px`;
-		layer.style.position = 'absolute';
-		res.appendChild(layer);
-
-		this.gradient = gradientMapper(config.gradient);
-		this.ctx = ctx;
-		this.width = width;
-		this.height = height;
-		this.layer = layer;
-		this.dom = res;
-		this.gradShadOP = createGradiantShader(this.ctx);
-		this.colorShadOP = createColorShader(this.ctx);
-		this.imageShaOP = createImageShader(this.ctx);
-		this.fbTexObj = ctx.createTexture();
-		this.fbo = ctx.createFramebuffer();
-
-		this.size = config.size ? config.size : 20.0;
-		dataMaxValue = config.max ? config.max : null;
-		dataMinValue = config.min ? config.min : null;
-		this.intensity = config.intensity ? config.intensity : 1.0;
-		this.translate = (config.translate && config.translate.length === 2) ? config.translate : [0, 0];
-		this.zoom = (config.zoom ? config.zoom : 1.0);
-		this.angle = (config.rotationAngle ? config.rotationAngle : 0.0);
-		this.opacity = config.opacity ? config.opacity : 1.0;
-		this.ratio = ratio;
-
-		if (config.backgroundImage && config.backgroundImage.url) {
-			this.setBackgroundImage(config.backgroundImage);
-		}
-
-		this.rawData = [];
-
-		ctx.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-		this.render(this.exData || {});
 	}
 
 	Chart.prototype.resize = function () {
@@ -267,9 +343,8 @@ function Heatmap (context, config = {}) {
 		this.width = width;
 		this.height = height;
 		this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-		console.log('resize');
 		/* Perform update */
-		this.render(this.exData);
+		this.render(hearmapExData);
 	};
 
 	Chart.prototype.clear = function () {
@@ -277,43 +352,90 @@ function Heatmap (context, config = {}) {
 	};
 
 	Chart.prototype.setMax = function (max) {
-		dataMaxValue = max;
-		this.render(this.exData);
+		if (isNullUndefined(max) || isNotNumber(max)) {
+			throw new Error('Invalid max: Expected Number');
+		}
+
+		configMax = max;
+		return this;
 	};
 
 	Chart.prototype.setMin = function (min) {
-		dataMinValue = min;
-		this.render(this.exData);
+		if (isNullUndefined(min) || isNotNumber(min)) {
+			throw new Error('Invalid min: Expected Number');
+		}
+
+		configMin = min;
+		return this;
+	};
+
+	Chart.prototype.setGradient = function (gradient) {
+		this.gradient = gradientMapper(gradient);
+		return this;
 	};
 
 	Chart.prototype.setTranslate = function (translate) {
-		this.translate = (translate.length === 2) ? translate : [0, 0];
-		this.render(this.exData);
+		if (translate.constructor !== Array) {
+			throw new Error('Invalid Translate: Translate has to be of Array type');
+		}
+		if (translate.length !== 2) {
+			throw new Error('Translate has to be of length 2');
+		}
+		this.translate = translate;
+		return this;
 	};
 
 	Chart.prototype.setZoom = function (zoom) {
-		this.zoom = zoom !== undefined ? zoom : 1.0;
-		this.render(this.exData);
+		if (isNullUndefined(zoom) || isNotNumber(zoom)) {
+			throw new Error('Invalid zoom: Expected Number');
+		}
+
+		this.zoom = zoom;
+		return this;
 	};
 
 	Chart.prototype.setRotationAngle = function (angle) {
-		this.angle = angle !== undefined ? angle : 0.0;
-		this.render(this.exData);
+		if (isNullUndefined(angle) || isNotNumber(angle)) {
+			throw new Error('Invalid Angle: Expected Number');
+		}
+
+		this.angle = angle;
+		return this;
 	};
 
 	Chart.prototype.setSize = function (size) {
-		this.size = size !== undefined ? size : 20.0;
-		this.render(this.exData);
+		if (isNullUndefined(size) || isNotNumber(size)) {
+			throw new Error('Invalid Size: Expected Number');
+		}
+
+		this.size = size;
+		return this;
 	};
 
 	Chart.prototype.setIntensity = function (intensity) {
-		this.intensity = intensity !== undefined ? intensity : 1.0;
-		this.render(this.exData);
+		if (isNullUndefined(intensity) || isNotNumber(intensity)) {
+			this.intensity = 1.0; // applying default intensity
+			throw new Error('Invalid Intensity: Expected Number');
+		}
+
+		if (intensity > 1 || intensity < 0) {
+			this.intensity = intensity > 1 ? 1 : 0; // Setting bound value
+			throw new Error('Invalid Intensity value ' + intensity);
+		}
+		this.intensity = intensity;
+		return this;
 	};
 
 	Chart.prototype.setOpacity = function (opacity) {
-		this.opacity = opacity !== undefined ? opacity : 1.0;
-		this.render(this.exData);
+		if (isNullUndefined(opacity) || isNotNumber(opacity)) {
+			throw new Error('Invalid Opacity: Expected Number');
+		}
+
+		if (opacity > 1 || opacity < 0) {
+			throw new Error('Invalid Opacity value ' + opacity);
+		}
+		this.opacity = opacity;
+		return this;
 	};
 
 	Chart.prototype.setBackgroundImage = function (config) {
@@ -325,7 +447,7 @@ function Heatmap (context, config = {}) {
 		maxTextureSize = this.ctx.getParameter(this.ctx.MAX_TEXTURE_SIZE);
 		this.imageTexture = this.ctx.createTexture();
 	    this.type = 'TEXTURE_2D';
-	    this.imageConfig = null;
+	    imageConfig = null;
 
 	    imgWidth = config.width || this.width;
 	    imgHeight = config.height || this.height;
@@ -353,7 +475,7 @@ function Heatmap (context, config = {}) {
 		            this
 		        );
 
-			self.imageConfig = {
+			imageConfig = {
 				x: config.x || 0,
 				y: config.y || 0,
 				height: imgHeight,
@@ -361,10 +483,17 @@ function Heatmap (context, config = {}) {
 				image: this
 			};
 
-			self.render(self.exData || {});
+			self.render();
 	    }, function onErrorCallBack (error) {
-			console.error('Image Load Error', error);
+			throw new Error('Image Load Error', error);
 	    });
+	    return this;
+	};
+
+	Chart.prototype.clearData = function () {
+		this.heatmapData = [];
+		hearmapExData = {};
+		this.render();
 	};
 
 	Chart.prototype.addData = function (data, transIntactFlag) {
@@ -373,15 +502,24 @@ function Heatmap (context, config = {}) {
 			if (transIntactFlag) {
 				transCoOr.call(self, data[i]);
 			}
-			this.rawData.push(data[i]);
+			this.heatmapData.push(data[i]);
 		}
-		this.renderData(this.rawData);
+		this.renderData(this.heatmapData);
+		return this;
 	};
 
 	Chart.prototype.renderData = function (data) {
-		const exData = extractData(data);
-		this.rawData = data;
-		this.render(exData);
+		if (data.constructor !== Array) {
+			throw new Error('Expected Array type');
+		}
+		hearmapExData = extractData(data);
+		this.heatmapData = data;
+		this.render();
+		return this;
+	};
+
+	Chart.prototype.render = function () {
+		renderExec.call(this);
 	};
 
 	Chart.prototype.projection = function (data) {
@@ -418,9 +556,8 @@ function Heatmap (context, config = {}) {
 		    return { x: posX, y: posY };
 	};
 
-	Chart.prototype.render = function (exData) {
+	function renderExec () {
 		const ctx = this.ctx;
-		this.exData = exData;
 		
 		ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
 
@@ -433,22 +570,23 @@ function Heatmap (context, config = {}) {
 		ctx.bindFramebuffer(ctx.FRAMEBUFFER, this.fbo);
 		ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, this.fbTexObj, 0);
 		
-		renderHeatGrad.call(this, ctx, exData);
+		if (hearmapExData) {
+			renderHeatGrad.call(this, ctx, hearmapExData);
+		}
 		ctx.bindFramebuffer(ctx.FRAMEBUFFER, null);
-		if (this.imageConfig) {
-			renderImage.call(this, ctx);
+		if (imageConfig) {
+			renderImage.call(this, ctx, imageConfig);
 		}
 		renderColorGradiant.call(this, ctx);
-	};
-
+	}
 	function renderHeatGrad (ctx, exData) {
 		ctx.useProgram(this.gradShadOP.program);
 
-		this.min = dataMinValue !== null ? dataMinValue : exData?.minMax?.min ?? 0;
-		this.max = dataMaxValue !== null ? dataMaxValue : exData?.minMax?.max ?? 0;
+		this.min = configMin !== null ? configMin : exData?.minMax?.min ?? 0;
+		this.max = configMax !== null ? configMax : exData?.minMax?.max ?? 0;
 		this.gradShadOP.attr[0].data = exData.posVec || [];
 		this.gradShadOP.attr[1].data = exData.rVec || [];
-		console.log(this.width, this.height);
+
 		ctx.uniform2fv(this.gradShadOP.uniform.u_resolution, new Float32Array([this.width * this.ratio, this.height * this.ratio]));
 		ctx.uniform2fv(this.gradShadOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
 		ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
@@ -466,11 +604,11 @@ function Heatmap (context, config = {}) {
 			ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0);
 		});
 
-		ctx.drawArrays(ctx.POINTS, 0, (this.exData.posVec || []).length / 2);
+		ctx.drawArrays(ctx.POINTS, 0, (exData.posVec || []).length / 2);
 	}
 
-	function renderImage (ctx) {
-		const { x = 0, y = 0, width = 0, height = 0 } = this.imageConfig;
+	function renderImage (ctx, imageConfig) {
+		const { x = 0, y = 0, width = 0, height = 0 } = imageConfig;
 
 		ctx.useProgram(this.imageShaOP.program);
 
@@ -540,6 +678,9 @@ function Heatmap (context, config = {}) {
 		posX = (posX * halfWidth) + halfWidth - this.translate[0];
 		posY = (posY * halfHeight) + halfHeight - this.translate[1];
 
+		data.x = posX;
+		data.y = posY;
+
 		    return { x: posX, y: posY };
 	}
 
@@ -569,57 +710,51 @@ function getPixlRatio (ctx) {
 
 var GradShaders = {
 	vertex: `#version 300 es
-	in vec2 a_position;
-	in float a_intensity;
-	uniform float u_size;
-	uniform vec2 u_resolution;
-	uniform vec2 u_translate; 
-	uniform float u_zoom; 
-	uniform float u_angle; 
-	uniform float u_density;
-	out float v_i;
+				in vec2 a_position;
+				in float a_intensity;
+				uniform float u_size;
+				uniform vec2 u_resolution;
+				uniform vec2 u_translate; 
+				uniform float u_zoom; 
+				uniform float u_angle; 
+				uniform float u_density;
+				out float v_i;
 
-	vec2 rotation(vec2 v, float a, float aspect) {
-		float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c); 
-		mat2 scaleMat    = mat2(aspect, 0.0, 0.0, 1.0);
-		mat2 scaleMatInv = mat2(1.0/aspect, 0.0, 0.0, 1.0);
-		return scaleMatInv * m * scaleMat * v;
-	}
+				vec2 rotation(vec2 v, float a, float aspect) {
+					float s = sin(a); float c = cos(a); mat2 rotationMat = mat2(c, -s, s, c); 
+					mat2 scaleMat    = mat2(aspect, 0.0, 0.0, 1.0);
+					mat2 scaleMatInv = mat2(1.0/aspect, 0.0, 0.0, 1.0);
+					return scaleMatInv * rotationMat * scaleMat * v;
+				}
 
-	void main() {
-		vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
-		vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
-		float zoomFactor = u_zoom;
-		if (zoomFactor == 0.0) {
-			zoomFactor = 0.1;
-		}
-		zeroToTwo = zeroToTwo / zoomFactor;
-		if (u_angle != 0.0) {
-			zeroToTwo = rotation(zeroToTwo, u_angle, u_resolution.x / u_resolution.y);
-		}
-		gl_Position = vec4(zeroToTwo , 0, 1);
-		gl_PointSize = u_size * u_density;
-		v_i = a_intensity;
-	}`,
+				void main() {
+					vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
+					vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
+					float zoomFactor = max(u_zoom, 0.1);
+					zeroToTwo = zeroToTwo / zoomFactor;
+					if (u_angle != 0.0) {
+						zeroToTwo = rotation(zeroToTwo, u_angle, u_resolution.x / u_resolution.y);
+					}
+					gl_Position = vec4(zeroToTwo , 0, 1);
+					gl_PointSize = u_size * u_density;
+					v_i = a_intensity;
+				}`,
 	fragment: `#version 300 es
-	precision mediump float;
-	uniform float u_max;
-	uniform float u_min;
-	uniform float u_intensity;
-	in float v_i;
-	out vec4 fragColor;
-	void main() {
-		float r = 0.0; 
-		vec2 cxy = 2.0 * gl_PointCoord - 1.0;
-		r = dot(cxy, cxy);
-		float deno = u_max - u_min;
-		if (deno <= 0.0) {
-			deno = 1.0;
-		}
-		if(r <= 1.0) {
-			fragColor = vec4(0, 0, 0, ((v_i - u_min) / (deno)) * u_intensity * (1.0 - sqrt(r)));
-		}
-	}`
+				precision mediump float;
+				uniform float u_max;
+				uniform float u_min;
+				uniform float u_intensity;
+				in float v_i;
+				out vec4 fragColor;
+				void main() {
+					float r = 0.0; 
+					vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+					r = dot(cxy, cxy);
+					float deno = max(u_max - u_min, 1.0);
+					if(r <= 1.0) {
+						fragColor = vec4(0, 0, 0, ((v_i - u_min) / (deno)) * u_intensity * (1.0 - sqrt(r)));
+					}
+				}`
 };
 
 var ColorShader = {

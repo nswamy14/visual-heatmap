@@ -59,31 +59,31 @@ let instance = visualHeatmap('#canvas', {
 
     var params = new ParamsCon();
     gui.add( params, 'size', 50, 100 ).onChange( function () {
-        instance.setSize(params.size);
+        instance.setSize(params.size).render();
         params.updateLabels();
     } );
     gui.add( params, 'opacity', 0, 1 ).onChange( function () {
-        instance.setOpacity(params.opacity);
+        instance.setOpacity(params.opacity).render();
         params.updateLabels();
     } );
     gui.add( params, 'intensity', 0, 1 ).onChange( function () {
-        instance.setIntensity(params.intensity);
+        instance.setIntensity(params.intensity).render();
         params.updateLabels();
     } );
     gui.add( params, 'transalteX', -instance.width, instance.width ).onChange( function () {
-        instance.setTranslate([params.transalteX, params.transalteY]);
+        instance.setTranslate([params.transalteX, params.transalteY]).render();
         params.updateLabels();
     } );
     gui.add( params, 'transalteY', -instance.height, instance.height ).onChange( function () {
-        instance.setTranslate([params.transalteX, params.transalteY]);
+        instance.setTranslate([params.transalteX, params.transalteY]).render();
         params.updateLabels();
     } );
     gui.add( params, 'zoom', 0, 2 ).onChange( function () {
-        instance.setZoom(params.zoom);
+        instance.setZoom(params.zoom).render();
         params.updateLabels();
     } );
     gui.add( params, 'rotationAngle', 0, Math.PI * 2 ).onChange( function () {
-        instance.setRotationAngle(params.rotationAngle);
+        instance.setRotationAngle(params.rotationAngle).render();
         params.updateLabels();
     } );
 
