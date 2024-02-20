@@ -9,35 +9,37 @@ Visual Heatmap, an open-source JavaScript module, emerges as a powerful tool des
 <a href="https://nswamy14.github.io/visual-heatmap/demo/heatmapWithLabels.html"> <label>Click<label><img src="https://nswamy14.github.io/visual-heatmap/snaps/snap4.png" width=1200> </a>
 </p>
 
-## Installing
+# Installing
 
-If npm
+npm
 ```
 npm i visual-heatmap --save
 ```
-Download source code from below links
+Or Download source code from below links
 
 * [visualHeatmap.min.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.min.js)
 * [visualHeatmap.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.js)
 * [visualHeatmap.esm.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.esm.js)
 
-Visual-Heatmap is written in ES6 Modules. To import use below syntax
 
-Importing everything into namespace
+
+# Usage
+
+### Importing
+Visual-Heatmap provides ES6 and UMD modules. Accordingly module can be embeded into applications.
+
 ```
 import Heatmap from 'visual-heatmap'
 ```
 
-## VisualHeatmapJs - API
-
-### visualHeatmap()
-visualHeatmap provides a API to create context **WebGL**. API accepts container/containerId and config as an input. A layer will be created under the provided Div #containerId.
+### Instance creation
+visualHeatmap provides a API to create heatmap instance. API accepts container/containerId and config as an input. A context element will be created under the provided Div #containerId.
 ```Javascript
 let instance = Heatmap('#containerId', {
-        size: 30.0,
+        size: 30.0,  //Radius of the data point, in pixels. Default: 20
         max: 100,  // if not set, will be derived from data
         min: 0,  // if not set, will be derived from data
-        intensity: 1.0,
+        intensity: 1.0, 
         background: {
             url: "urlPath",
             width: 100, // if not set, viewport width of the image will be considered
@@ -63,32 +65,46 @@ let instance = Heatmap('#containerId', {
         }]
     });
 ```
-**Container/ContainerId** The container div element or a string CSS Query selector which identifies the container.
+**Container/ContainerId** : The container div element or a string CSS Query selector which identifies the container.
 
-**Config**
-Object with config properties.
+**Config Object** :
 ```
 {
-     size : Radius of the data point, in pixels.
-     max : Max data Value for relative gradient computation.
-     min : Min data Value for relative gradient computation.
-     intensity : intensity factor.
-     opacity : Opacity factor.
-     rotationAngle : Rotation angle.
-     translate : translate vector [x, y].
-     zoom : Zoom Factor.
+     size : Radius of the data point, in pixels. Default: 20
+     max : Max data Value for relative gradient computation. if not set, will be derived from data.
+     min : Min data Value for relative gradient computation. if not set, will be derived from data.
+     intensity : intensity factor. Default: 1.0
+     opacity : Opacity factor. Default: 1.0
+     rotationAngle : Rotation angle. Default: 0
+     translate : translate vector [x, y]. Default: [0,0]
+     zoom : Zoom Factor. Default: 1.0
      gradient : Color Gradient, array of objects with color value and offset.
-     background: To set background of the heatMap
+     background: To set background of the heatMap. Value : { url: , x: , y: , height: , width: }
 }
 ```
 
+## Adding Data
 
 ### instance.renderData([])
 Accepts an array of data points with 'x', 'y' and 'value'.  [Demo](https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html)
+```Javascript
+instance.renderData([])
+```
 
 ### instance.addData([], transformationIntactflag);
-Accepts an array of data points with 'x', 'y' and 'value' and a flag to specify to apply existing canvas transformations on the newly added data points.
+Accepts an array of data points with 'x', 'y' and 'value' and a flag to specify to apply existing heatmap transformations on the newly added data points. After adding data points, need to invoke `.render()` method to update the heatmap.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
+```Javascript
+instance.addData([],transformationIntactflag)
+```
+
+## Render API
+Method to re-render the heatmap. This method needs to be invoked as and when configurations get changed. [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html)
+```Javascript
+instance.render()
+```
+
+## Configuration Setting API
 
 ### instance.setMax(number)
 To set max data value, for relative gradient calculations.
