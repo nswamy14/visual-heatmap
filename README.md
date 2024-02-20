@@ -26,7 +26,7 @@ Or Download source code from below links
 # Usage
 
 ### Importing
-Visual-Heatmap provides ES6 and UMD modules. Accordingly module can be embeded into applications.
+Visual-Heatmap offers both ES6 and UMD modules, making it possible to integrate the module into applications as needed.
 
 ```
 import Heatmap from 'visual-heatmap'
