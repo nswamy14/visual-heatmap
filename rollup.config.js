@@ -8,7 +8,7 @@ const license = require('./package.json').license;
 
 const banner =
 	`/*!
-      * Heatmap v${version}
+      * Heatmap
       * (c) ${new Date().getFullYear()} ${author} (narayanaswamy14@gmail.com)
       * @license ${license}
       */`;

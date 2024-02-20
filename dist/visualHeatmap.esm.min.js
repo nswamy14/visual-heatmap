@@ -1,5 +1,5 @@
 /*!
-      * Heatmap v1.1.0
+      * Heatmap
       * (c) 2024 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
