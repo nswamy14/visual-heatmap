@@ -1,13 +1,16 @@
 {
   "name": "visual-heatmap",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
-  "module": "./main.js",
-  "main": "./dist/visualHeatmap.esm.js",
+  "module": "./dist/visualHeatmap.esm.js",
+  "main": "./dist/visualHeatmap.js",
   "scripts": {
     "dev": "rollup -wm -c rollup.config.js",
     "build": "rm -rf ./dist/ && rollup -c rollup.config.js"
   },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nswamy14/visual-heatmap.git"

@@ -14,7 +14,7 @@ const banner =
       */`;
 
 export default [{
-	input: './main.js',
+	input: './src/main.js',
 	output: [{
 		banner,
 		file: 'dist/visualHeatmap.esm.js',
@@ -33,7 +33,7 @@ export default [{
 			throwOnError: true
 		})]
 }, {
-	input: './main.js',
+	input: './src/main.js',
 	output: [{
 		file: 'dist/visualHeatmap.min.js',
 		banner,
