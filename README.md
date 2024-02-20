@@ -32,7 +32,7 @@ Visual-Heatmap provides ES6 and UMD modules. Accordingly module can be embeded i
 import Heatmap from 'visual-heatmap'
 ```
 
-### Instance creation
+### Instance Creation API
 visualHeatmap provides a API to create heatmap instance. API accepts container/containerId and config as an input. A context element will be created under the provided Div #containerId.
 ```Javascript
 let instance = Heatmap('#containerId', {
@@ -83,7 +83,7 @@ let instance = Heatmap('#containerId', {
 }
 ```
 
-## Adding Data
+## Adding Data API
 
 ### instance.renderData([])
 Accepts an array of data points with 'x', 'y' and 'value'.  [Demo](https://nswamy14.github.io/visual-heatmap/demo/heatmap1.html)
