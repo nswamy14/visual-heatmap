@@ -1,6 +1,6 @@
 {
   "name": "visual-heatmap",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
   "module": "./dist/visualHeatmap.esm.js",
   "main": "./dist/visualHeatmap.js",
