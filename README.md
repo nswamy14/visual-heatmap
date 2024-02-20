@@ -92,7 +92,7 @@ instance.renderData([{x: , y: , value: }])
 ```
 
 ### instance.addData([], transformationIntactflag);
-Accepts an array of data points with 'x', 'y' and 'value' and a flag to specify to apply existing heatmap transformations on the newly added data points. After adding data points, need to invoke `.render()` method to update the heatmap.
+Accepts an array of data points with 'x', 'y' and 'value' and a boolean flag to specify to apply existing heatmap transformations on the newly added data points. After adding data points, need to invoke `.render()` method to update the heatmap.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 ```Javascript
 instance.addData([{x: , y: , value: }],transformationIntactflag)
