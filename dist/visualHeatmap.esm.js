@@ -3,240 +3,378 @@
       * (c) 2024 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
+const GradShader = {
+	vertex: `#version 300 es
+				in vec2 a_position;
+				in float a_intensity;
+				uniform float u_size;
+				uniform vec2 u_resolution;
+				uniform vec2 u_translate; 
+				uniform float u_zoom; 
+				uniform float u_angle; 
+				uniform float u_density;
+				out float v_i;
+
+				vec2 rotation(vec2 v, float a, float aspect) {
+					float s = sin(a); float c = cos(a); mat2 rotationMat = mat2(c, -s, s, c); 
+					mat2 scaleMat    = mat2(aspect, 0.0, 0.0, 1.0);
+					mat2 scaleMatInv = mat2(1.0/aspect, 0.0, 0.0, 1.0);
+					return scaleMatInv * rotationMat * scaleMat * v;
+				}
+
+				void main() {
+					vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
+					vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
+					float zoomFactor = max(u_zoom, 0.1);
+					zeroToTwo = zeroToTwo / zoomFactor;
+					if (u_angle != 0.0) {
+						zeroToTwo = rotation(zeroToTwo, u_angle, u_resolution.x / u_resolution.y);
+					}
+					gl_Position = vec4(zeroToTwo , 0, 1);
+					gl_PointSize = u_size * u_density;
+					v_i = a_intensity;
+				}`,
+	fragment: `#version 300 es
+				precision mediump float;
+				uniform float u_max;
+				uniform float u_min;
+				uniform float u_intensity;
+				in float v_i;
+				out vec4 fragColor;
+				void main() {
+					float r = 0.0; 
+					vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+					r = dot(cxy, cxy);
+					float deno = max(u_max - u_min, 1.0);
+					if(r <= 1.0) {
+						fragColor = vec4(0, 0, 0, ((v_i - u_min) / (deno)) * u_intensity * (1.0 - sqrt(r)));
+					}
+				}`
+};
+
+const ColorShader = {
+	vertex: `#version 300 es
+				precision highp float;
+				in vec2 a_texCoord;
+				out vec2 v_texCoord;
+				void main() {
+					vec2 clipSpace = a_texCoord * 2.0 - 1.0;
+					gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+					v_texCoord = a_texCoord;
+				}
+	`,
+	fragment: `#version 300 es
+					precision mediump float;
+					in vec2 v_texCoord;
+					out vec4 fragColor;
+					uniform sampler2D u_framebuffer;
+					uniform vec4 u_colorArr[20];
+					uniform float u_colorCount;
+					uniform float u_opacity;
+					uniform float u_offset[20];
+
+					float remap ( float minval, float maxval, float curval ) {
+						return ( curval - minval ) / ( maxval - minval );
+					}
+
+					void main() {
+						float alpha = texture(u_framebuffer, v_texCoord.xy).a;
+						if (alpha > 0.0 && alpha <= 1.0) {
+							vec4 color_;
+
+							if (alpha <= u_offset[0]) {
+								color_ = u_colorArr[0];
+							} else {
+								for (int i = 1; i <= 20; ++i) {
+									if (alpha <= u_offset[i]) {
+										color_ = mix( u_colorArr[i - 1], u_colorArr[i], remap( u_offset[i - 1], u_offset[i], alpha ) );
+										color_ = color_ * mix( u_colorArr[i - 1][3], u_colorArr[i][3], remap( u_offset[i - 1], u_offset[i], alpha ));
+
+										break;
+									}
+								}
+							}
+
+							color_ =  color_ * u_opacity;
+							if (color_.a < 0.0) {
+								color_.a = 0.0;
+							}
+							fragColor = color_;
+						} else {
+							fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+						}
+					}
+		`
+};
+
+const ImageShader = {
+	vertex: `#version 300 es
+                    precision highp float;
+                    in vec2 a_position;
+                    in vec2 a_texCoord;
+                    uniform vec2 u_resolution;
+					uniform vec2 u_translate; 
+					uniform float u_zoom; 
+					uniform float u_angle; 
+					uniform float u_density;
+                    out vec2 v_texCoord;
+
+                    vec2 rotation(vec2 v, float a, float aspect) {
+						float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c);
+						mat2 scaleMat    = mat2(aspect, 0.0, 0.0, 1.0);
+						mat2 scaleMatInv = mat2(1.0/aspect, 0.0, 0.0, 1.0);
+						return scaleMatInv * m * scaleMat * v;
+					}
+
+                    void main() {
+                      	vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
+                      	zeroToOne.y = 1.0 - zeroToOne.y;
+						vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
+						float zoomFactor = u_zoom;
+						if (zoomFactor == 0.0) {
+							zoomFactor = 0.1;
+						}
+						zeroToTwo = zeroToTwo / zoomFactor;
+						if (u_angle != 0.0) {
+							zeroToTwo = rotation(zeroToTwo, u_angle * -1.0, u_resolution.x / u_resolution.y);
+						}
+
+						gl_Position = vec4(zeroToTwo , 0, 1);
+						v_texCoord = a_texCoord;
+                    }
+          		`,
+	fragment: `#version 300 es
+                    precision mediump float;
+                    uniform sampler2D u_image;
+                    in vec2 v_texCoord;
+                    out vec4 fragColor;
+                    void main() {
+                      fragColor = texture(u_image, v_texCoord);
+                    }
+                    `
+};
+
+function isNullUndefined (val) {
+	return val === null || val === undefined;
+}
+
+function isNotNumber (val) {
+	return typeof val !== 'number';
+}
+
+function isSortedAscending (arr) {
+	for (let i = 0; i < arr.length - 1; i++) {
+		if (arr[i + 1].offset - arr[i].offset < 0) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function gradientMapper (grad) {
+	if (!Array.isArray(grad) || grad.length < 2) {
+		throw new Error('Invalid gradient: Expected an array with at least 2 elements.');
+	}
+
+	if (!isSortedAscending(grad)) {
+		throw new Error('Invalid gradient: Gradient is not sorted');
+	}
+
+	const gradLength = grad.length;
+	const values = new Float32Array(gradLength * 4);
+	const offsets = new Array(gradLength);
+
+	grad.forEach(function (d, i) {
+		const baseIndex = i * 4;
+		values[baseIndex] = d.color[0] / 255;
+		values[baseIndex + 1] = d.color[1] / 255;
+		values[baseIndex + 2] = d.color[2] / 255;
+		values[baseIndex + 3] = d.color[3] !== undefined ? d.color[3] : 1.0;
+		offsets[i] = d.offset;
+	});
+
+	return {
+		value: values,
+		length: gradLength,
+		offset: offsets
+	};
+}
+
+function createShader (ctx, type, src) {
+	var shader = ctx.createShader(ctx[type]);
+	ctx.shaderSource(shader, src);
+	ctx.compileShader(shader);
+	var compiled = ctx.getShaderParameter(shader, ctx.COMPILE_STATUS);
+	if (!compiled) {
+		var lastError = ctx.getShaderInfoLog(shader);
+		ctx.deleteShader(shader);
+		throw new Error("*** Error compiling shader '" + shader + "':" + lastError);
+	}
+	return shader;
+}
+
+function createProgram (ctx, shader) {
+	var vshader = createShader(ctx, 'VERTEX_SHADER', shader.vertex);
+	var fshader = createShader(ctx, 'FRAGMENT_SHADER', shader.fragment);
+
+	var program = ctx.createProgram();
+
+	ctx.attachShader(program, vshader);
+	ctx.attachShader(program, fshader);
+	ctx.linkProgram(program);
+
+	var linked = ctx.getProgramParameter(program, ctx.LINK_STATUS);
+	if (!linked) {
+		var lastError = ctx.getProgramInfoLog(program);
+		ctx.deleteProgram(program);
+		throw new Error('Error in program linking:' + lastError);
+	} else {
+		return program;
+	}
+}
+
+function createImageShader (ctx) {
+	var program = createProgram(ctx, ImageShader);
+	return {
+		program: program,
+		attr: [{
+			bufferType: ctx.ARRAY_BUFFER,
+			buffer: ctx.createBuffer(),
+			drawType: ctx.STATIC_DRAW,
+			valueType: ctx.FLOAT,
+			size: 2,
+			attribute: ctx.getAttribLocation(program, 'a_position'),
+			data: new Float32Array([])
+		}, {
+			bufferType: ctx.ARRAY_BUFFER,
+			buffer: ctx.createBuffer(),
+			drawType: ctx.STATIC_DRAW,
+			valueType: ctx.FLOAT,
+			size: 2,
+			attribute: ctx.getAttribLocation(program, 'a_texCoord'),
+			data: new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0])
+		}],
+		uniform: {
+			u_resolution: ctx.getUniformLocation(program, 'u_resolution'),
+			u_image: ctx.getUniformLocation(program, 'u_image'),
+			u_translate: ctx.getUniformLocation(program, 'u_translate'),
+			u_zoom: ctx.getUniformLocation(program, 'u_zoom'),
+			u_angle: ctx.getUniformLocation(program, 'u_angle'),
+			u_density: ctx.getUniformLocation(program, 'u_density')
+		}
+	};
+}
+
+function createGradiantShader (ctx) {
+	var program = createProgram(ctx, GradShader);
+	return {
+		program: program,
+		attr: [{
+			bufferType: ctx.ARRAY_BUFFER,
+			buffer: ctx.createBuffer(),
+			drawType: ctx.STATIC_DRAW,
+			valueType: ctx.FLOAT,
+			size: 2,
+			attribute: ctx.getAttribLocation(program, 'a_position'),
+			data: new Float32Array([])
+		}, {
+			bufferType: ctx.ARRAY_BUFFER,
+			buffer: ctx.createBuffer(),
+			drawType: ctx.STATIC_DRAW,
+			valueType: ctx.FLOAT,
+			size: 1,
+			attribute: ctx.getAttribLocation(program, 'a_intensity'),
+			data: new Float32Array([])
+		}],
+		uniform: {
+			u_resolution: ctx.getUniformLocation(program, 'u_resolution'),
+			u_max: ctx.getUniformLocation(program, 'u_max'),
+			u_min: ctx.getUniformLocation(program, 'u_min'),
+			u_size: ctx.getUniformLocation(program, 'u_size'),
+			u_intensity: ctx.getUniformLocation(program, 'u_intensity'),
+			u_translate: ctx.getUniformLocation(program, 'u_translate'),
+			u_zoom: ctx.getUniformLocation(program, 'u_zoom'),
+			u_angle: ctx.getUniformLocation(program, 'u_angle'),
+			u_density: ctx.getUniformLocation(program, 'u_density')
+		}
+	};
+}
+
+function createColorShader (ctx) {
+	var program = createProgram(ctx, ColorShader);
+	return {
+		program: program,
+		attr: [{
+			bufferType: ctx.ARRAY_BUFFER,
+			buffer: ctx.createBuffer(),
+			drawType: ctx.STATIC_DRAW,
+			valueType: ctx.FLOAT,
+			size: 2,
+			attribute: ctx.getAttribLocation(program, 'a_texCoord'),
+			data: new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0])
+		}],
+		uniform: {
+			u_framebuffer: ctx.getUniformLocation(program, 'u_framebuffer'),
+			u_colorArr: ctx.getUniformLocation(program, 'u_colorArr'),
+			u_colorCount: ctx.getUniformLocation(program, 'u_colorCount'),
+			u_opacity: ctx.getUniformLocation(program, 'u_opacity'),
+			u_offset: ctx.getUniformLocation(program, 'u_offset')
+		}
+	};
+}
+
+function extractData (data, self) {
+	const len = data.length;
+	let { posVec = [], rVec = [] } = self.hearmapExData || {};
+	if (self.pLen !== len) {
+		self.buffer = new ArrayBuffer(len * 8);
+		posVec = new Float32Array(self.buffer);
+		self.buffer2 = new ArrayBuffer(len * 4);
+		rVec = new Float32Array(self.buffer2);
+		self.pLen = len;
+	}
+	const dataMinMaxValue = {
+		min: Infinity,
+		max: -Infinity
+	};
+	for (let i = 0; i < len; i++) {
+		posVec[i * 2] = data[i].x;
+		posVec[(i * 2) + 1] = data[i].y;
+		rVec[i] = data[i].value;
+		if (dataMinMaxValue.min > data[i].value) {
+			dataMinMaxValue.min = data[i].value;
+		}
+		if (dataMinMaxValue.max < data[i].value) {
+			dataMinMaxValue.max = data[i].value;
+		}
+	}
+
+	return {
+		posVec: posVec,
+		rVec: rVec,
+		minMax: dataMinMaxValue
+	};
+}
+
+function getPixlRatio (ctx) {
+	const dpr = window.devicePixelRatio || 1;
+	const bsr = ctx.webkitBackingStorePixelRatio ||
+        ctx.mozBackingStorePixelRatio ||
+        ctx.msBackingStorePixelRatio ||
+        ctx.oBackingStorePixelRatio ||
+        ctx.backingStorePixelRatio || 1;
+
+	return dpr / bsr;
+}
+
 function Heatmap (context, config = {}) {
-	let ratio;
-	let buffer;
-	let posVec = [];
-	let buffer2;
-	let rVec = [];
-	let pLen = 0;
-	let maxTextureSize = null;
-	let imgWidth;
-	let imgHeight;
-	let hearmapExData;
-	let imageConfig;
-	let configMin = 0;
-	let configMax = 0;
-
-
-	function isNullUndefined (val) {
-		return val === null || val === undefined;
-	}
-
-	function isNotNumber (val) {
-		return typeof val !== 'number';
-	}
-
-	function isSortedAscending (arr) {
-		for (let i = 0; i < arr.length - 1; i++) {
-			if (arr[i + 1].offset - arr[i].offset < 0) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-
-	function gradientMapper (grad) {
-		if (grad.constructor !== Array) {
-			throw new Error('Invalid gradient: Wrong Gradient type, expected Array');
-		}
-
-		if (grad.length < 2) {
-			throw new Error('Invalid gradient: 2 or more values expected');
-		}
-
-		if (!isSortedAscending(grad)) {
-			throw new Error('Invalid gradient: Gradient is not sorted');
-		}
-
-		const gradLength = grad.length;
-		const values = new Float32Array(gradLength * 4);
-		const offsets = new Array(gradLength);
-
-		grad.forEach(function (d, i) {
-			const baseIndex = i * 4;
-			values[baseIndex] = d.color[0] / 255;
-	        values[baseIndex + 1] = d.color[1] / 255;
-	        values[baseIndex + 2] = d.color[2] / 255;
-	        values[baseIndex + 3] = d.color[3] !== undefined ? d.color[3] : 1.0;
-			offsets[i] = d.offset;
-		});
-
-		return {
-			value: values,
-			length: gradLength,
-			offset: offsets
-		};
-	}
-
-	function createShader (ctx, type, src) {
-		var shader = ctx.createShader(ctx[type]);
-		ctx.shaderSource(shader, src);
-		ctx.compileShader(shader);
-		var compiled = ctx.getShaderParameter(shader, ctx.COMPILE_STATUS);
-		if (!compiled) {
-			var lastError = ctx.getShaderInfoLog(shader);
-			ctx.deleteShader(shader);
-			throw new Error("*** Error compiling shader '" + shader + "':" + lastError);
-		}
-		return shader;
-	}
-
-	function createProgram (ctx, shader) {
-		var vshader = createShader(ctx, 'VERTEX_SHADER', shader.vertex);
-		var fshader = createShader(ctx, 'FRAGMENT_SHADER', shader.fragment);
-
-		var program = ctx.createProgram();
-
-		ctx.attachShader(program, vshader);
-		ctx.attachShader(program, fshader);
-		ctx.linkProgram(program);
-
-		var linked = ctx.getProgramParameter(program, ctx.LINK_STATUS);
-		if (!linked) {
-			var lastError = ctx.getProgramInfoLog(program);
-			ctx.deleteProgram(program);
-			throw new Error('Error in program linking:' + lastError);
-		} else {
-			return program;
-		}
-	}
-
-	function createImageShader (ctx) {
-		var program = createProgram(ctx, imageShaders);
-		return {
-			program: program,
-			attr: [{
-				bufferType: ctx.ARRAY_BUFFER,
-				buffer: ctx.createBuffer(),
-				drawType: ctx.STATIC_DRAW,
-				valueType: ctx.FLOAT,
-				size: 2,
-				attribute: ctx.getAttribLocation(program, 'a_position'),
-				data: new Float32Array([])
-			}, {
-				bufferType: ctx.ARRAY_BUFFER,
-				buffer: ctx.createBuffer(),
-				drawType: ctx.STATIC_DRAW,
-				valueType: ctx.FLOAT,
-				size: 2,
-				attribute: ctx.getAttribLocation(program, 'a_texCoord'),
-				data: new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0])
-			}],
-			uniform: {
-				u_resolution: ctx.getUniformLocation(program, 'u_resolution'),
-				u_image: ctx.getUniformLocation(program, 'u_image'),
-				u_translate: ctx.getUniformLocation(program, 'u_translate'),
-				u_zoom: ctx.getUniformLocation(program, 'u_zoom'),
-				u_angle: ctx.getUniformLocation(program, 'u_angle'),
-				u_density: ctx.getUniformLocation(program, 'u_density')
-			}
-		};
-	}
-
-	function createGradiantShader (ctx) {
-		var program = createProgram(ctx, GradShaders);
-		return {
-			program: program,
-			attr: [{
-				bufferType: ctx.ARRAY_BUFFER,
-				buffer: ctx.createBuffer(),
-				drawType: ctx.STATIC_DRAW,
-				valueType: ctx.FLOAT,
-				size: 2,
-				attribute: ctx.getAttribLocation(program, 'a_position'),
-				data: new Float32Array([])
-			}, {
-				bufferType: ctx.ARRAY_BUFFER,
-				buffer: ctx.createBuffer(),
-				drawType: ctx.STATIC_DRAW,
-				valueType: ctx.FLOAT,
-				size: 1,
-				attribute: ctx.getAttribLocation(program, 'a_intensity'),
-				data: new Float32Array([])
-			}],
-			uniform: {
-				u_resolution: ctx.getUniformLocation(program, 'u_resolution'),
-				u_max: ctx.getUniformLocation(program, 'u_max'),
-				u_min: ctx.getUniformLocation(program, 'u_min'),
-				u_size: ctx.getUniformLocation(program, 'u_size'),
-				u_intensity: ctx.getUniformLocation(program, 'u_intensity'),
-				u_translate: ctx.getUniformLocation(program, 'u_translate'),
-				u_zoom: ctx.getUniformLocation(program, 'u_zoom'),
-				u_angle: ctx.getUniformLocation(program, 'u_angle'),
-				u_density: ctx.getUniformLocation(program, 'u_density')
-			}
-		};
-	}
-
-	function createColorShader (ctx) {
-		var program = createProgram(ctx, ColorShader);
-		return {
-			program: program,
-			attr: [{
-				bufferType: ctx.ARRAY_BUFFER,
-				buffer: ctx.createBuffer(),
-				drawType: ctx.STATIC_DRAW,
-				valueType: ctx.FLOAT,
-				size: 2,
-				attribute: ctx.getAttribLocation(program, 'a_texCoord'),
-				data: new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0])
-			}],
-			uniform: {
-				u_framebuffer: ctx.getUniformLocation(program, 'u_framebuffer'),
-				u_colorArr: ctx.getUniformLocation(program, 'u_colorArr'),
-				u_colorCount: ctx.getUniformLocation(program, 'u_colorCount'),
-				u_opacity: ctx.getUniformLocation(program, 'u_opacity'),
-				u_offset: ctx.getUniformLocation(program, 'u_offset')
-			}
-		};
-	}
-
-	function extractData (data) {
-		const len = data.length;
-		if (pLen !== len) {
-			buffer = new ArrayBuffer(len * 8);
-			posVec = new Float32Array(buffer);
-			buffer2 = new ArrayBuffer(len * 4);
-			rVec = new Float32Array(buffer2);
-			pLen = len;
-		}
-		const dataMinMaxValue = {
-			min: Infinity,
-			max: -Infinity
-		};
-		for (let i = 0; i < len; i++) {
-			posVec[i * 2] = data[i].x;
-			posVec[(i * 2) + 1] = data[i].y;
-			rVec[i] = data[i].value;
-			if (dataMinMaxValue.min > data[i].value) {
-				dataMinMaxValue.min = data[i].value;
-			}
-			if (dataMinMaxValue.max < data[i].value) {
-				dataMinMaxValue.max = data[i].value;
-			}
-		}
-
-		return {
-			posVec: posVec,
-			rVec: rVec,
-			minMax: dataMinMaxValue
-		};
-	}
-
-	function Chart (context, config) {
+	function Chart (container, config) {
 		try {
-			let res;
-			if (typeof context === 'string') {
-				res = document.querySelector(context);
-			} else if (context instanceof Element) {
-				res = context;
-			} else {
+			const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
+			if (!res) {
 				throw new Error('Context must be either a string or an Element');
 			}
-			const height = res.clientHeight;
-			const width = res.clientWidth;
+			const { clientHeight: height, clientWidth: width } = res;
 			const layer = document.createElement('canvas');
 			const ctx = layer.getContext('webgl2', {
 				premultipliedAlpha: false,
@@ -245,14 +383,14 @@ function Heatmap (context, config = {}) {
 				alpha: true,
 				preserveDrawingBuffer: false
 			});
-			ratio = getPixlRatio(ctx);
+			this.ratio = getPixlRatio(ctx);
 			ctx.clearColor(0, 0, 0, 0);
 			ctx.enable(ctx.BLEND);
 			ctx.blendEquation(ctx.FUNC_ADD);
 			ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
 			ctx.depthMask(true);
-			layer.setAttribute('height', height * ratio);
-			layer.setAttribute('width', width * ratio);
+			layer.setAttribute('height', height * this.ratio);
+			layer.setAttribute('width', width * this.ratio);
 			layer.style.height = `${height}px`;
 			layer.style.width = `${width}px`;
 			layer.style.position = 'absolute';
@@ -261,6 +399,10 @@ function Heatmap (context, config = {}) {
 			this.ctx = ctx;
 			this.width = width;
 			this.height = height;
+			this.imageConfig = null;
+			this.configMin = null;
+			this.configMax = null;
+			this.hearmapExData = {};
 			this.layer = layer;
 			this.dom = res;
 			this.gradShadOP = createGradiantShader(this.ctx);
@@ -278,13 +420,13 @@ function Heatmap (context, config = {}) {
 			if (!isNullUndefined(config.max)) {
 				this.setMax(config.max);
 			} else {
-				configMax = null;
+				this.configMax = null;
 			}
 
 			if (!isNullUndefined(config.min)) {
 				this.setMin(config.min);
 			} else {
-				configMin = null;
+				this.configMin = null;
 			}
 
 			if (!isNullUndefined(config.intensity)) {
@@ -319,8 +461,6 @@ function Heatmap (context, config = {}) {
 
 			this.gradient = gradientMapper(config.gradient);
 
-			this.ratio = ratio;
-
 			if (config.backgroundImage && config.backgroundImage.url) {
 				this.setBackgroundImage(config.backgroundImage);
 			}
@@ -336,15 +476,15 @@ function Heatmap (context, config = {}) {
 	Chart.prototype.resize = function () {
 		const height = this.dom.clientHeight;
 		const width = this.dom.clientWidth;
-		this.layer.setAttribute('height', height * ratio);
-		this.layer.setAttribute('width', width * ratio);
+		this.layer.setAttribute('height', height * this.ratio);
+		this.layer.setAttribute('width', width * this.ratio);
 		this.layer.style.height = `${height}px`;
 		this.layer.style.width = `${width}px`;
 		this.width = width;
 		this.height = height;
 		this.ctx.viewport(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 		/* Perform update */
-		this.render(hearmapExData);
+		this.render(this.hearmapExData);
 	};
 
 	Chart.prototype.clear = function () {
@@ -356,7 +496,7 @@ function Heatmap (context, config = {}) {
 			throw new Error('Invalid max: Expected Number');
 		}
 
-		configMax = max;
+		this.configMax = max;
 		return this;
 	};
 
@@ -365,7 +505,7 @@ function Heatmap (context, config = {}) {
 			throw new Error('Invalid min: Expected Number');
 		}
 
-		configMin = min;
+		this.configMin = min;
 		return this;
 	};
 
@@ -444,16 +584,16 @@ function Heatmap (context, config = {}) {
 			return;
 		}
 
-		maxTextureSize = this.ctx.getParameter(this.ctx.MAX_TEXTURE_SIZE);
+		const maxTextureSize = this.ctx.getParameter(this.ctx.MAX_TEXTURE_SIZE);
 		this.imageTexture = this.ctx.createTexture();
 	    this.type = 'TEXTURE_2D';
-	    imageConfig = null;
+	    this.imageConfig = null;
 
-	    imgWidth = config.width || this.width;
-	    imgHeight = config.height || this.height;
+	    this.imgWidth = config.width || this.width;
+	    this.imgHeight = config.height || this.height;
 
-	    imgWidth = imgWidth > maxTextureSize ? maxTextureSize : imgWidth;
-	    imgHeight = imgHeight > maxTextureSize ? maxTextureSize : imgHeight;
+	    this.imgWidth = this.imgWidth > maxTextureSize ? maxTextureSize : this.imgWidth;
+	    this.imgHeight = this.imgHeight > maxTextureSize ? maxTextureSize : this.imgHeight;
 
 	    imageInstance(config.url, function onUpdateCallBack () {
 			self.ctx.activeTexture(self.ctx.TEXTURE0);
@@ -475,11 +615,11 @@ function Heatmap (context, config = {}) {
 		            this
 		        );
 
-			imageConfig = {
+			self.imageConfig = {
 				x: config.x || 0,
 				y: config.y || 0,
-				height: imgHeight,
-				width: imgWidth,
+				height: self.imgHeight,
+				width: self.imgWidth,
 				image: this
 			};
 
@@ -492,7 +632,7 @@ function Heatmap (context, config = {}) {
 
 	Chart.prototype.clearData = function () {
 		this.heatmapData = [];
-		hearmapExData = {};
+		this.hearmapExData = {};
 		this.render();
 	};
 
@@ -512,7 +652,7 @@ function Heatmap (context, config = {}) {
 		if (data.constructor !== Array) {
 			throw new Error('Expected Array type');
 		}
-		hearmapExData = extractData(data);
+		this.hearmapExData = extractData(data, this);
 		this.heatmapData = data;
 		this.render();
 		return this;
@@ -570,20 +710,20 @@ function Heatmap (context, config = {}) {
 		ctx.bindFramebuffer(ctx.FRAMEBUFFER, this.fbo);
 		ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, this.fbTexObj, 0);
 		
-		if (hearmapExData) {
-			renderHeatGrad.call(this, ctx, hearmapExData);
+		if (this.hearmapExData) {
+			renderHeatGrad.call(this, ctx, this.hearmapExData);
 		}
 		ctx.bindFramebuffer(ctx.FRAMEBUFFER, null);
-		if (imageConfig) {
-			renderImage.call(this, ctx, imageConfig);
+		if (this.imageConfig) {
+			renderImage.call(this, ctx, this.imageConfig);
 		}
 		renderColorGradiant.call(this, ctx);
 	}
 	function renderHeatGrad (ctx, exData) {
 		ctx.useProgram(this.gradShadOP.program);
 
-		this.min = configMin !== null ? configMin : exData?.minMax?.min ?? 0;
-		this.max = configMax !== null ? configMax : exData?.minMax?.max ?? 0;
+		this.min = this.configMin !== null ? this.configMin : exData?.minMax?.min ?? 0;
+		this.max = this.configMax !== null ? this.configMax : exData?.minMax?.max ?? 0;
 		this.gradShadOP.attr[0].data = exData.posVec || [];
 		this.gradShadOP.attr[1].data = exData.rVec || [];
 
@@ -659,7 +799,7 @@ function Heatmap (context, config = {}) {
 		const zoomFactor = this.zoom || 0.1;
 		const halfWidth = this.width / 2;
 		const halfHeight = this.height / 2;
-		const angle = this.angle;
+		const { angle, translate } = this;
 
 		// Combine operations to reduce the number of arithmetic steps
 		let posX = (data.x - halfWidth) / halfWidth * zoomFactor;
@@ -669,19 +809,18 @@ function Heatmap (context, config = {}) {
 		if (angle !== 0.0) {
 			const cosAngle = Math.cos(angle);
 			const sinAngle = Math.sin(angle);
-			const xNew = (cosAngle * posX) - (sinAngle * posY);
 			posY = (sinAngle * posX) + (cosAngle * posY);
-			posX = xNew;
+			posX = (cosAngle * posX) - (sinAngle * posY);
 		}
 
 		// Scale back and adjust the position
-		posX = (posX * halfWidth) + halfWidth - this.translate[0];
-		posY = (posY * halfHeight) + halfHeight - this.translate[1];
+		posX = (posX * halfWidth) + halfWidth - translate[0];
+		posY = (posY * halfHeight) + halfHeight - translate[1];
 
 		data.x = posX;
 		data.y = posY;
 
-		    return { x: posX, y: posY };
+		return { x: posX, y: posY };
 	}
 
 	function imageInstance (url, onLoad, onError) {
@@ -696,167 +835,5 @@ function Heatmap (context, config = {}) {
 
 	return new Chart(context, config);
 }
-
-function getPixlRatio (ctx) {
-	const dpr = window.devicePixelRatio || 1;
-	const bsr = ctx.webkitBackingStorePixelRatio ||
-        ctx.mozBackingStorePixelRatio ||
-        ctx.msBackingStorePixelRatio ||
-        ctx.oBackingStorePixelRatio ||
-        ctx.backingStorePixelRatio || 1;
-
-	return dpr / bsr;
-}
-
-var GradShaders = {
-	vertex: `#version 300 es
-				in vec2 a_position;
-				in float a_intensity;
-				uniform float u_size;
-				uniform vec2 u_resolution;
-				uniform vec2 u_translate; 
-				uniform float u_zoom; 
-				uniform float u_angle; 
-				uniform float u_density;
-				out float v_i;
-
-				vec2 rotation(vec2 v, float a, float aspect) {
-					float s = sin(a); float c = cos(a); mat2 rotationMat = mat2(c, -s, s, c); 
-					mat2 scaleMat    = mat2(aspect, 0.0, 0.0, 1.0);
-					mat2 scaleMatInv = mat2(1.0/aspect, 0.0, 0.0, 1.0);
-					return scaleMatInv * rotationMat * scaleMat * v;
-				}
-
-				void main() {
-					vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
-					vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
-					float zoomFactor = max(u_zoom, 0.1);
-					zeroToTwo = zeroToTwo / zoomFactor;
-					if (u_angle != 0.0) {
-						zeroToTwo = rotation(zeroToTwo, u_angle, u_resolution.x / u_resolution.y);
-					}
-					gl_Position = vec4(zeroToTwo , 0, 1);
-					gl_PointSize = u_size * u_density;
-					v_i = a_intensity;
-				}`,
-	fragment: `#version 300 es
-				precision mediump float;
-				uniform float u_max;
-				uniform float u_min;
-				uniform float u_intensity;
-				in float v_i;
-				out vec4 fragColor;
-				void main() {
-					float r = 0.0; 
-					vec2 cxy = 2.0 * gl_PointCoord - 1.0;
-					r = dot(cxy, cxy);
-					float deno = max(u_max - u_min, 1.0);
-					if(r <= 1.0) {
-						fragColor = vec4(0, 0, 0, ((v_i - u_min) / (deno)) * u_intensity * (1.0 - sqrt(r)));
-					}
-				}`
-};
-
-var ColorShader = {
-	vertex: `#version 300 es
-				precision highp float;
-				in vec2 a_texCoord;
-				out vec2 v_texCoord;
-				void main() {
-					vec2 clipSpace = a_texCoord * 2.0 - 1.0;
-					gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-					v_texCoord = a_texCoord;
-				}
-	`,
-	fragment: `#version 300 es
-					precision mediump float;
-					in vec2 v_texCoord;
-					out vec4 fragColor;
-					uniform sampler2D u_framebuffer;
-					uniform vec4 u_colorArr[20];
-					uniform float u_colorCount;
-					uniform float u_opacity;
-					uniform float u_offset[20];
-
-					float remap ( float minval, float maxval, float curval ) {
-						return ( curval - minval ) / ( maxval - minval );
-					}
-
-					void main() {
-						float alpha = texture(u_framebuffer, v_texCoord.xy).a;
-						if (alpha > 0.0 && alpha <= 1.0) {
-							vec4 color_;
-
-							if (alpha <= u_offset[0]) {
-								color_ = u_colorArr[0];
-							} else {
-								for (int i = 1; i <= 20; ++i) {
-									if (alpha <= u_offset[i]) {
-										color_ = mix( u_colorArr[i - 1], u_colorArr[i], remap( u_offset[i - 1], u_offset[i], alpha ) );
-										color_ = color_ * mix( u_colorArr[i - 1][3], u_colorArr[i][3], remap( u_offset[i - 1], u_offset[i], alpha ));
-
-										break;
-									}
-								}
-							}
-
-							color_ =  color_ * u_opacity;
-							if (color_.a < 0.0) {
-								color_.a = 0.0;
-							}
-							fragColor = color_;
-						} else {
-							fragColor = vec4(0.0, 0.0, 0.0, 0.0);
-						}
-					}
-		`
-};
-
-var imageShaders = {
-	vertex: `#version 300 es
-                    precision highp float;
-                    in vec2 a_position;
-                    in vec2 a_texCoord;
-                    uniform vec2 u_resolution;
-					uniform vec2 u_translate; 
-					uniform float u_zoom; 
-					uniform float u_angle; 
-					uniform float u_density;
-                    out vec2 v_texCoord;
-
-                    vec2 rotation(vec2 v, float a, float aspect) {
-						float s = sin(a); float c = cos(a); mat2 m = mat2(c, -s, s, c);
-						mat2 scaleMat    = mat2(aspect, 0.0, 0.0, 1.0);
-						mat2 scaleMatInv = mat2(1.0/aspect, 0.0, 0.0, 1.0);
-						return scaleMatInv * m * scaleMat * v;
-					}
-
-                    void main() {
-                      	vec2 zeroToOne = (a_position * u_density + u_translate * u_density) / (u_resolution);
-                      	zeroToOne.y = 1.0 - zeroToOne.y;
-						vec2 zeroToTwo = zeroToOne * 2.0 - 1.0;
-						float zoomFactor = u_zoom;
-						if (zoomFactor == 0.0) {
-							zoomFactor = 0.1;
-						}
-						zeroToTwo = zeroToTwo / zoomFactor;
-						if (u_angle != 0.0) {
-							zeroToTwo = rotation(zeroToTwo, u_angle * -1.0, u_resolution.x / u_resolution.y);
-						}
-
-						gl_Position = vec4(zeroToTwo , 0, 1);
-						v_texCoord = a_texCoord;
-                    }
-          		`,
-	fragment: `#version 300 es
-                    precision mediump float;
-                    uniform sampler2D u_image;
-                    in vec2 v_texCoord;
-                    out vec4 fragColor;
-                    void main() {
-                      fragColor = texture(u_image, v_texCoord);
-                    }
-                    `
-};
 
 export { Heatmap as default };
