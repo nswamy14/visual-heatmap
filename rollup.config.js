@@ -1,6 +1,7 @@
-import commonjs from "@rollup/plugin-commonjs";
+import commonjs from '@rollup/plugin-commonjs';
 import eslint from '@rollup/plugin-eslint';
-import { terser } from "rollup-plugin-terser";
+import { terser } from 'rollup-plugin-terser';
+import typescript from '@rollup/plugin-typescript';
 
 const version = process.env.VERSION || require('./package.json').version;
 const author = require('./package.json').author;
@@ -14,7 +15,7 @@ const banner =
       */`;
 
 export default [{
-	input: './src/main.js',
+	input: './src/main.ts',
 	output: [{
 		banner,
 		file: 'dist/visualHeatmap.esm.js',
@@ -33,7 +34,7 @@ export default [{
 			throwOnError: true
 		})]
 }, {
-	input: './src/main.js',
+	input: './src/main.ts',
 	output: [{
 		file: 'dist/visualHeatmap.min.js',
 		banner,
@@ -49,6 +50,7 @@ export default [{
 	}],
 	plugins: [
 		commonjs(),
+		typescript(),
 		terser(),
 		eslint({
 			fix: true,
