@@ -16,44 +16,6 @@ const ImageShader = {
   fragment: "#version 300 es\n                    precision mediump float;\n                    uniform sampler2D u_image;\n                    in vec2 v_texCoord;\n                    out vec4 fragColor;\n                    void main() {\n                      fragColor = texture(u_image, v_texCoord);\n                    }\n                    "
 };
 
-function isNullUndefined(val) {
-  return val === null || val === undefined;
-}
-function isNotNumber(val) {
-  return typeof val !== 'number';
-}
-function isSortedAscending(arr) {
-  for (let i = 0; i < arr.length - 1; i++) {
-    if (arr[i + 1].offset - arr[i].offset < 0) {
-      return false;
-    }
-  }
-  return true;
-}
-function gradientMapper(grad) {
-  if (!Array.isArray(grad) || grad.length < 2) {
-    throw new Error('Invalid gradient: Expected an array with at least 2 elements.');
-  }
-  if (!isSortedAscending(grad)) {
-    throw new Error('Invalid gradient: Gradient is not sorted');
-  }
-  const gradLength = grad.length;
-  const values = new Float32Array(gradLength * 4);
-  const offsets = new Array(gradLength);
-  grad.forEach(function (d, i) {
-    const baseIndex = i * 4;
-    values[baseIndex] = d.color[0] / 255;
-    values[baseIndex + 1] = d.color[1] / 255;
-    values[baseIndex + 2] = d.color[2] / 255;
-    values[baseIndex + 3] = d.color[3] !== undefined ? d.color[3] : 1.0;
-    offsets[i] = d.offset;
-  });
-  return {
-    value: values,
-    length: gradLength,
-    offset: offsets
-  };
-}
 function createShader(ctx, type, src) {
   var shader = ctx.createShader(ctx[type]);
   ctx.shaderSource(shader, src);
@@ -82,8 +44,8 @@ function createProgram(ctx, shader) {
     return program;
   }
 }
-function createImageShader(ctx) {
-  var program = createProgram(ctx, ImageShader);
+const createImageShader = function (ctx, shader) {
+  var program = createProgram(ctx, shader);
   return {
     program: program,
     attr: [{
@@ -112,9 +74,9 @@ function createImageShader(ctx) {
       u_density: ctx.getUniformLocation(program, 'u_density')
     }
   };
-}
-function createGradiantShader(ctx) {
-  var program = createProgram(ctx, GradShader);
+};
+const createGradiantShader = function (ctx, shader) {
+  var program = createProgram(ctx, shader);
   return {
     program: program,
     attr: [{
@@ -146,9 +108,9 @@ function createGradiantShader(ctx) {
       u_density: ctx.getUniformLocation(program, 'u_density')
     }
   };
-}
-function createColorShader(ctx) {
-  var program = createProgram(ctx, ColorShader);
+};
+const createColorShader = function (ctx, shader) {
+  var program = createProgram(ctx, shader);
   return {
     program: program,
     attr: [{
@@ -167,6 +129,51 @@ function createColorShader(ctx) {
       u_opacity: ctx.getUniformLocation(program, 'u_opacity'),
       u_offset: ctx.getUniformLocation(program, 'u_offset')
     }
+  };
+};
+
+function isNullUndefined(val) {
+  return val === null || val === undefined;
+}
+function isNotNumber(val) {
+  return typeof val !== 'number';
+}
+function isSortedAscending(arr) {
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i + 1].offset - arr[i].offset < 0) {
+      return false;
+    }
+  }
+  return true;
+}
+function getPixlRatio(ctx) {
+  const dpr = window.devicePixelRatio || 1;
+  const bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
+  return dpr / bsr;
+}
+
+function gradientMapper(grad) {
+  if (!Array.isArray(grad) || grad.length < 2) {
+    throw new Error('Invalid gradient: Expected an array with at least 2 elements.');
+  }
+  if (!isSortedAscending(grad)) {
+    throw new Error('Invalid gradient: Gradient is not sorted');
+  }
+  const gradLength = grad.length;
+  const values = new Float32Array(gradLength * 4);
+  const offsets = new Array(gradLength);
+  grad.forEach(function (d, i) {
+    const baseIndex = i * 4;
+    values[baseIndex] = d.color[0] / 255;
+    values[baseIndex + 1] = d.color[1] / 255;
+    values[baseIndex + 2] = d.color[2] / 255;
+    values[baseIndex + 3] = d.color[3] !== undefined ? d.color[3] : 1.0;
+    offsets[i] = d.offset;
+  });
+  return {
+    value: values,
+    length: gradLength,
+    offset: offsets
   };
 }
 function extractData(data, self) {
@@ -202,11 +209,6 @@ function extractData(data, self) {
     rVec: rVec,
     minMax: dataMinMaxValue
   };
-}
-function getPixlRatio(ctx) {
-  const dpr = window.devicePixelRatio || 1;
-  const bsr = ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1;
-  return dpr / bsr;
 }
 function transCoOr(data) {
   const zoomFactor = this.zoom || 0.1;
@@ -332,7 +334,7 @@ function imageInstance(url, onLoad, onError) {
   imageIns.src = url;
   return imageIns;
 }
-class Chart {
+class HeatmapRenderer {
   constructor(container, config) {
     try {
       const res = typeof container === 'string' ? document.querySelector(container) : container instanceof HTMLElement ? container : null;
@@ -372,9 +374,9 @@ class Chart {
       this.hearmapExData = {};
       this.layer = layer;
       this.dom = res;
-      this.gradShadOP = createGradiantShader(this.ctx);
-      this.colorShadOP = createColorShader(this.ctx);
-      this.imageShaOP = createImageShader(this.ctx);
+      this.gradShadOP = createGradiantShader(this.ctx, GradShader);
+      this.colorShadOP = createColorShader(this.ctx, ColorShader);
+      this.imageShaOP = createImageShader(this.ctx, ImageShader);
       this.fbTexObj = ctx.createTexture();
       this.fbo = ctx.createFramebuffer();
       if (!isNullUndefined(config.size)) {
@@ -610,9 +612,10 @@ class Chart {
     };
   }
 }
+
 function Heatmap(context) {
   let config = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  return new Chart(context, config);
+  return new HeatmapRenderer(context, config);
 }
 
 export { Heatmap as default };
