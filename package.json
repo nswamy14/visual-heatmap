@@ -31,8 +31,11 @@
   },
   "homepage": "https://github.com/nswamy14/visual-heatmap#readme",
   "devDependencies": {
-    "@rollup/plugin-eslint": "^9.0.5",
+    "@babel/core": "^7.24.4",
+    "@babel/preset-env": "^7.24.4",
+    "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^22.0.2",
+    "@rollup/plugin-eslint": "^9.0.5",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^6.15.0",

@@ -1,6 +1,7 @@
 import commonjs from "@rollup/plugin-commonjs";
 import eslint from '@rollup/plugin-eslint';
 import { terser } from "rollup-plugin-terser";
+import babel from '@rollup/plugin-babel';
 
 const version = process.env.VERSION || require('./package.json').version;
 const author = require('./package.json').author;
@@ -27,11 +28,19 @@ export default [{
 		name: 'visualHeatmap'
 	}],
 	plugins: [
-		commonjs(),
+		// babel({
+	    //   babelHelpers: 'bundled',
+	    //   exclude: 'node_modules/**', // Don't transpile node_modules
+	    // }),
+		// commonjs(),
 		eslint({
 			fix: true,
 			throwOnError: true
-		})]
+		}),
+		babel({
+	      babelHelpers: 'bundled',
+	      exclude: 'node_modules/**', // Don't transpile node_modules
+	    })]
 }, {
 	input: './src/main.js',
 	output: [{
@@ -48,10 +57,15 @@ export default [{
 		compact: true
 	}],
 	plugins: [
-		commonjs(),
+		
+		// commonjs(),
 		terser(),
 		eslint({
 			fix: true,
 			throwOnError: true
-		})]
+		}),
+		babel({
+	      babelHelpers: 'bundled',
+	      exclude: 'node_modules/**', // Don't transpile node_modules
+	    })]
 }];
