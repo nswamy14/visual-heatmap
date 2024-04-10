@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "lib": ["es2017", "DOM"],
+    "strict": true,
+    "esModuleInterop": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true // Generate TypeScript declaration files
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
