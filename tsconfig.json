@@ -4,12 +4,12 @@
     "module": "esnext",
     "moduleResolution": "node",
     "noEmitOnError": true,
-    "lib": ["es2017", "DOM"],
+    "lib": ["es2022", "DOM"],
     "strict": true,
-    "esModuleInterop": false,
     "outDir": "./dist",
     "rootDir": "./src",
-    "declaration": true // Generate TypeScript declaration files
+    "declaration": true,
+    "emitDeclarationOnly": true
   },
   "include": ["./src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

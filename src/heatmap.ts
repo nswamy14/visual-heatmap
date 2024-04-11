@@ -54,10 +54,9 @@ function gradientMapper(grad: GradientElement[]): MappedGradient {
 
 function extractData(data: Point[], self: HeatmapRenderer): HearmapExData {
   const len = data.length;
-  //   TODO ISSUE?
-  let { posVec = [], rVec = [] } = (self.hearmapExData || {}) as HearmapExData;
+  let { posVec = new Float32Array(), rVec = new Float32Array() } =
+    (self.hearmapExData || {}) as HearmapExData;
 
-  //   TODO ISSUE?
   if (self.pLen !== len) {
     self.buffer = new ArrayBuffer(len * 8);
     posVec = new Float32Array(self.buffer);
@@ -201,11 +200,10 @@ function renderHeatGrad(
   ctx.drawArrays(ctx.POINTS, 0, (exData.posVec || []).length / 2);
 }
 
-// TODO need to fix any type
 function renderImage(
   this: HeatmapRenderer,
   ctx: WebGL2RenderingContext,
-  imageConfig: any
+  imageConfig: BackgroundImageConfig
 ) {
   const { x = 0, y = 0, width = 0, height = 0 } = imageConfig;
 
@@ -317,6 +315,9 @@ export class HeatmapRenderer {
   opacity: number = 0;
   gradient: MappedGradient | null = null;
   imageTexture: WebGLTexture | null = null;
+  pLen: number | undefined = undefined;
+  buffer: ArrayBuffer | undefined = undefined;
+  buffer2: ArrayBuffer | undefined = undefined;
 
   private layer!: HTMLCanvasElement;
   private dom!: Element;
@@ -324,17 +325,8 @@ export class HeatmapRenderer {
   private imgHeight: number = 0;
   private heatmapData: Point[] = [];
   private type: string = "";
-  pLen: number | undefined = undefined;
-  buffer: ArrayBuffer | undefined = undefined;
-  buffer2: ArrayBuffer | undefined = undefined;
 
-  constructor(
-    container: string | HTMLElement,
-    config: HeatmapConfig = {
-      backgroundImage: {},
-      gradient: [],
-    }
-  ) {
+  constructor(container: string | HTMLElement, config: HeatmapConfig) {
     try {
       const res =
         typeof container === "string"
@@ -456,8 +448,6 @@ export class HeatmapRenderer {
     this.height = height;
     this.ctx!.viewport(0, 0, this.ctx!.canvas.width, this.ctx!.canvas.height);
     /* Perform update */
-    // TODO ISSUE
-    // this.render(this.hearmapExData);
     this.render();
   }
 
@@ -465,11 +455,6 @@ export class HeatmapRenderer {
     this.ctx!.clear(this.ctx!.COLOR_BUFFER_BIT | this.ctx!.DEPTH_BUFFER_BIT);
   }
 
-  /**
-   * Set the maximum data value for relative gradient calculations
-   * @param max - number
-   * @returns HeatmapRenderer instance
-   */
   setMax(max: number): HeatmapRenderer {
     if (isNullUndefined(max) || isNotNumber(max)) {
       throw new Error("Invalid max: Expected Number");
@@ -479,11 +464,6 @@ export class HeatmapRenderer {
     return this;
   }
 
-  /**
-   * Set the minimum data value for relative gradient calculations
-   * @param min - number
-   * @returns HeatmapRenderer instance
-   */
   setMin(min: number): HeatmapRenderer {
     if (isNullUndefined(min) || isNotNumber(min)) {
       throw new Error("Invalid min: Expected Number");
@@ -493,21 +473,11 @@ export class HeatmapRenderer {
     return this;
   }
 
-  /**
-   * Accepts array of objects with color, value and offset
-   * @param gradient - Color Gradient
-   * @returns HeatmapRenderer instance
-   */
   setGradient(gradient: GradientElement[]): HeatmapRenderer {
     this.gradient = gradientMapper(gradient);
     return this;
   }
 
-  /**
-   * Set the translate transformation on the canvas
-   * @param translate - Accepts array [x, y]
-   * @returns HeatmapRenderer instance
-   */
   setTranslate(translate: Translate) {
     if (translate.constructor !== Array) {
       throw new Error("Invalid Translate: Translate has to be of Array type");
@@ -519,11 +489,6 @@ export class HeatmapRenderer {
     return this;
   }
 
-  /**
-   * Set the zoom transformation on the canvas
-   * @param zoom - Accepts float value
-   * @returns HeatmapRenderer instance
-   */
   setZoom(zoom: number): HeatmapRenderer {
     if (isNullUndefined(zoom) || isNotNumber(zoom)) {
       throw new Error("Invalid zoom: Expected Number");
@@ -533,11 +498,6 @@ export class HeatmapRenderer {
     return this;
   }
 
-  /**
-   * Set the  rotation transformation on the canvas
-   * @param angle - Accepts angle in radians
-   * @returns HeatmapRenderer instance
-   */
   setRotationAngle(angle: number): HeatmapRenderer {
     if (isNullUndefined(angle) || isNotNumber(angle)) {
       throw new Error("Invalid Angle: Expected Number");
@@ -547,11 +507,6 @@ export class HeatmapRenderer {
     return this;
   }
 
-  /**
-   * Set the point radius
-   * @param size - Accepts float value
-   * @returns HeatmapRenderer instance
-   */
   setSize(size: number): HeatmapRenderer {
     if (isNullUndefined(size) || isNotNumber(size)) {
       throw new Error("Invalid Size: Expected Number");
@@ -561,11 +516,6 @@ export class HeatmapRenderer {
     return this;
   }
 
-  /**
-   * Set the intensity factor
-   * @param intensity - Accepts float value
-   * @returns HeatmapRenderer instance
-   */
   setIntensity(intensity: number): HeatmapRenderer {
     if (isNullUndefined(intensity) || isNotNumber(intensity)) {
       this.intensity = 1.0; // applying default intensity
@@ -580,11 +530,6 @@ export class HeatmapRenderer {
     return this;
   }
 
-  /**
-   * Set the opacity factor
-   * @param opacity - The opacity factor.
-   * @returns HeatmapRenderer instance
-   */
   setOpacity(opacity: number): HeatmapRenderer {
     if (isNullUndefined(opacity) || isNotNumber(opacity)) {
       throw new Error("Invalid Opacity: Expected Number");
@@ -597,11 +542,6 @@ export class HeatmapRenderer {
     return this;
   }
 
-  /**
-   * Set the background image
-   * @param config - Accepts Object with { Url, height, width, x, and y} properties
-   * @returns HeatmapRenderer instance
-   */
   setBackgroundImage(config: BackgroundImageConfig) {
     const self = this;
     if (!config.url) {
@@ -623,7 +563,7 @@ export class HeatmapRenderer {
 
     imageInstance(
       config.url,
-      function onUpdateCallBack(this: any) {
+      function onUpdateCallBack(this: HTMLImageElement) {
         self.ctx!.activeTexture(self.ctx!.TEXTURE0);
         self.ctx!.bindTexture(self.ctx!.TEXTURE_2D, self.imageTexture);
         self.ctx!.texParameteri(
@@ -682,12 +622,6 @@ export class HeatmapRenderer {
     this.render();
   }
 
-  /**
-   * After adding data points, need to invoke .render() method to update the heatmap
-   * @param data - The data points with 'x', 'y' and 'value'
-   * @param transIntactFlag - Flag indicating whether to apply existing heatmap transformations on the newly added data points
-   * @returns HeatmapRenderer instance
-   */
   addData(data: Point[], transIntactFlag: boolean): HeatmapRenderer {
     const self = this;
     for (let i = 0; i < data.length; i++) {
@@ -700,10 +634,6 @@ export class HeatmapRenderer {
     return this;
   }
 
-  /**
-   * @param data - Accepts an array of data points with 'x', 'y' and 'value'
-   * @returns HeatmapRenderer instance
-   */
   renderData(data: Point[]): HeatmapRenderer {
     if (data.constructor !== Array) {
       throw new Error("Expected Array type");
@@ -713,18 +643,11 @@ export class HeatmapRenderer {
     this.render();
     return this;
   }
-  /**
-   * Method to re-render the heatmap. This method needs to be invoked as and when configurations get changed
-   */
+
   render() {
     renderExec.call(this);
   }
 
-  /**
-   * Get projected co-ordinates relative to the heatmap layer
-   * @param data - The data point to project.
-   * @returns projected data point.
-   */
   projection(data: Point) {
     // Pre-compute constants and repetitive calculations
     const zoomFactor = this.zoom || 0.1;

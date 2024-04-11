@@ -54,12 +54,22 @@ export const createImageShader = function (
   shader: Shader
 ): ShaderProgram {
   var program = createProgram(ctx, shader);
+
+  const positionBuffer = ctx.createBuffer();
+  if (!positionBuffer) {
+    throw new Error("Failed to create position buffer.");
+  }
+  const texCoordBuffer = ctx.createBuffer();
+  if (!texCoordBuffer) {
+    throw new Error("Failed to create texture coordinate buffer.");
+  }
+
   return {
     program: program,
     attr: [
       {
         bufferType: ctx.ARRAY_BUFFER,
-        buffer: ctx.createBuffer()!,
+        buffer: positionBuffer,
         drawType: ctx.STATIC_DRAW,
         valueType: ctx.FLOAT,
         size: 2,
@@ -68,7 +78,7 @@ export const createImageShader = function (
       },
       {
         bufferType: ctx.ARRAY_BUFFER,
-        buffer: ctx.createBuffer()!,
+        buffer: texCoordBuffer,
         drawType: ctx.STATIC_DRAW,
         valueType: ctx.FLOAT,
         size: 2,
@@ -94,12 +104,21 @@ export const createGradiantShader = function (
   shader: Shader
 ): ShaderProgram {
   var program = createProgram(ctx, shader);
+
+  const positionBuffer = ctx.createBuffer();
+  if (!positionBuffer) {
+    throw new Error("Failed to create position buffer.");
+  }
+  const intensityBuffer = ctx.createBuffer();
+  if (!intensityBuffer) {
+    throw new Error("Failed to create intensity buffer.");
+  }
   return {
     program: program,
     attr: [
       {
         bufferType: ctx.ARRAY_BUFFER,
-        buffer: ctx.createBuffer()!,
+        buffer: positionBuffer,
         drawType: ctx.STATIC_DRAW,
         valueType: ctx.FLOAT,
         size: 2,
@@ -108,7 +127,7 @@ export const createGradiantShader = function (
       },
       {
         bufferType: ctx.ARRAY_BUFFER,
-        buffer: ctx.createBuffer()!,
+        buffer: intensityBuffer,
         drawType: ctx.STATIC_DRAW,
         valueType: ctx.FLOAT,
         size: 1,
@@ -135,12 +154,17 @@ export const createColorShader = function (
   shader: Shader
 ): ShaderProgram {
   var program = createProgram(ctx, shader);
+
+  const texCoordBuffer = ctx.createBuffer();
+  if (!texCoordBuffer) {
+    throw new Error("Failed to create texture coordinate buffer.");
+  }
   return {
     program: program,
     attr: [
       {
         bufferType: ctx.ARRAY_BUFFER,
-        buffer: ctx.createBuffer()!,
+        buffer: texCoordBuffer,
         drawType: ctx.STATIC_DRAW,
         valueType: ctx.FLOAT,
         size: 2,

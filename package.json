@@ -4,6 +4,7 @@
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
   "module": "./dist/visualHeatmap.esm.js",
   "main": "./dist/visualHeatmap.js",
+  "types": "./dist/main.d.ts",
   "scripts": {
     "dev": "rollup -wm -c rollup.config.js",
     "build": "rm -rf ./dist/ && rollup -c rollup.config.js"
@@ -34,7 +35,6 @@
     "@babel/core": "^7.24.4",
     "@babel/preset-env": "^7.24.4",
     "@rollup/plugin-babel": "^6.0.4",
-    "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-eslint": "^9.0.5",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-typescript": "^11.1.6",

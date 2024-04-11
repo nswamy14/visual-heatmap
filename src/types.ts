@@ -33,7 +33,6 @@ export type Color = [number, number, number, number?];
 export interface GradientElement {
   color: Color;
   offset: number;
-  value: any;
 }
 
 export interface MappedGradient {
@@ -48,7 +47,6 @@ export interface Point {
   value: number;
 }
 
-// TODO need to check optional
 export type HeatmapConfig = {
   size?: number;
   max?: number;
@@ -59,7 +57,7 @@ export type HeatmapConfig = {
   angle?: number;
   opacity?: number;
   gradient: GradientElement[];
-  backgroundImage: BackgroundImageConfig;
+  backgroundImage?: BackgroundImageConfig;
 };
 
 export type HearmapExData = {
@@ -71,13 +69,12 @@ export type HearmapExData = {
   };
 };
 
-// TODO need to check optional
 export interface BackgroundImageConfig {
   url?: string;
   width?: number;
   height?: number;
-  x?: number;
-  y?: number;
+  x: number;
+  y: number;
   image?: HTMLImageElement;
 }
 

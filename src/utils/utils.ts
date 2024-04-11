@@ -18,7 +18,6 @@ if (isNotNumber(value)) {
   console.log("The value is a number.");
 }
 
-// TODO need to later
 export function isSortedAscending(arr: any[]) {
   for (let i = 0; i < arr.length - 1; i++) {
     if (arr[i + 1].offset - arr[i].offset < 0) {

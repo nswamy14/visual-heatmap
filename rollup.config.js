@@ -1,4 +1,3 @@
-import commonjs from '@rollup/plugin-commonjs';
 import eslint from '@rollup/plugin-eslint';
 import { terser } from 'rollup-plugin-terser';
 import babel from '@rollup/plugin-babel';
@@ -29,20 +28,16 @@ export default [{
 		name: 'visualHeatmap'
 	}],
 	plugins: [
-		// babel({
-	    //   babelHelpers: 'bundled',
-	    //   exclude: 'node_modules/**', // Don't transpile node_modules
-	    // }),
-		// commonjs(),
 		typescript(),
-		eslint({
-			fix: true,
-			throwOnError: true
-		}),
+		// eslint({
+		// 	fix: true,
+		// 	throwOnError: true
+		// }),
 		babel({
 	      babelHelpers: 'bundled',
-	      exclude: 'node_modules/**', // Don't transpile node_modules
-	    })]
+	      exclude: 'node_modules/**' // Don't transpile node_modules
+	    }),
+	]
 }, {
 	input: './src/main.ts',
 	output: [{
@@ -59,16 +54,14 @@ export default [{
 		compact: true
 	}],
 	plugins: [
-		
-		// commonjs(),
-		terser(),
 		typescript(),
-		eslint({
-			fix: true,
-			throwOnError: true
-		}),
+		terser(),
+		// eslint({
+		// 	fix: true,
+		// 	throwOnError: true
+		// }),
 		babel({
 	      babelHelpers: 'bundled',
-	      exclude: 'node_modules/**', // Don't transpile node_modules
+	      exclude: 'node_modules/**' // Don't transpile node_modules
 	    })]
 }];
