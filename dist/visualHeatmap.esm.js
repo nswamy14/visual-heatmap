@@ -153,33 +153,33 @@ const ImageShader = {
 };
 
 function createShader(ctx, type, src) {
-    var shader = ctx.createShader(ctx[type]);
+    const shader = ctx.createShader(ctx[type]);
     if (!shader) {
         throw new Error("Failed to create shader.");
     }
     ctx.shaderSource(shader, src);
     ctx.compileShader(shader);
-    var compiled = ctx.getShaderParameter(shader, ctx.COMPILE_STATUS);
+    const compiled = ctx.getShaderParameter(shader, ctx.COMPILE_STATUS);
     if (!compiled) {
-        var lastError = ctx.getShaderInfoLog(shader);
+        const lastError = ctx.getShaderInfoLog(shader);
         ctx.deleteShader(shader);
         throw new Error("*** Error compiling shader '" + shader + "':" + lastError);
     }
     return shader;
 }
 function createProgram(ctx, shader) {
-    var vshader = createShader(ctx, "VERTEX_SHADER", shader.vertex);
-    var fshader = createShader(ctx, "FRAGMENT_SHADER", shader.fragment);
-    var program = ctx.createProgram();
+    const vshader = createShader(ctx, "VERTEX_SHADER", shader.vertex);
+    const fshader = createShader(ctx, "FRAGMENT_SHADER", shader.fragment);
+    const program = ctx.createProgram();
     if (!program) {
         throw new Error("Failed to create program.");
     }
     ctx.attachShader(program, vshader);
     ctx.attachShader(program, fshader);
     ctx.linkProgram(program);
-    var linked = ctx.getProgramParameter(program, ctx.LINK_STATUS);
+    const linked = ctx.getProgramParameter(program, ctx.LINK_STATUS);
     if (!linked) {
-        var lastError = ctx.getProgramInfoLog(program);
+        const lastError = ctx.getProgramInfoLog(program);
         ctx.deleteProgram(program);
         throw new Error("Error in program linking:" + lastError);
     }
@@ -188,7 +188,7 @@ function createProgram(ctx, shader) {
     }
 }
 const createImageShader = function (ctx, shader) {
-    var program = createProgram(ctx, shader);
+    const program = createProgram(ctx, shader);
     const positionBuffer = ctx.createBuffer();
     if (!positionBuffer) {
         throw new Error("Failed to create position buffer.");
@@ -232,7 +232,7 @@ const createImageShader = function (ctx, shader) {
     };
 };
 const createGradiantShader = function (ctx, shader) {
-    var program = createProgram(ctx, shader);
+    const program = createProgram(ctx, shader);
     const positionBuffer = ctx.createBuffer();
     if (!positionBuffer) {
         throw new Error("Failed to create position buffer.");
@@ -277,7 +277,7 @@ const createGradiantShader = function (ctx, shader) {
     };
 };
 const createColorShader = function (ctx, shader) {
-    var program = createProgram(ctx, shader);
+    const program = createProgram(ctx, shader);
     const texCoordBuffer = ctx.createBuffer();
     if (!texCoordBuffer) {
         throw new Error("Failed to create texture coordinate buffer.");
@@ -313,13 +313,7 @@ function isNullUndefined(val) {
 function isNotNumber(val) {
     return typeof val !== "number";
 }
-const value = "123";
-if (isNotNumber(value)) {
-    console.log("The value is not a number. ", value);
-}
-else {
-    console.log("The value is a number.");
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isSortedAscending(arr) {
     for (let i = 0; i < arr.length - 1; i++) {
         if (arr[i + 1].offset - arr[i].offset < 0) {
@@ -329,6 +323,7 @@ function isSortedAscending(arr) {
     return true;
 }
 /** @see https://codereview.chromium.org/156833002/ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getPixelRatio(ctx) {
     const dpr = window.devicePixelRatio || 1;
     const bsr = ctx.webkitBackingStorePixelRatio ||
@@ -741,6 +736,7 @@ class HeatmapRenderer {
         return this;
     }
     setBackgroundImage(config) {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this;
         if (!config.url) {
             return;
@@ -782,6 +778,7 @@ class HeatmapRenderer {
         this.render();
     }
     addData(data, transIntactFlag) {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this;
         for (let i = 0; i < data.length; i++) {
             if (transIntactFlag) {
@@ -834,130 +831,144 @@ class HeatmapRenderer {
 }
 
 // Internal class that encapsulates private properties and methods
-class HeatmapInternal {
+class Heatmap {
     constructor(context, config) {
         this.renderer = new HeatmapRenderer(context, config);
+        this.ctx = this.renderer.ctx;
+        this.ratio = this.renderer.ratio;
+        this.width = this.renderer.width;
+        this.height = this.renderer.height;
+        this.min = this.renderer.min;
+        this.max = this.renderer.max;
+        this.size = this.renderer.size;
+        this.zoom = this.renderer.zoom;
+        this.angle = this.renderer.angle;
+        this.intensity = this.renderer.intensity;
+        this.translate = this.renderer.translate;
+        this.opacity = this.renderer.opacity;
+        this.gradient = this.renderer.gradient;
+        this.imageConfig = this.renderer.imageConfig;
     }
     /**
-     * Set the maximum data value for relative gradient calculations
-     * @param max - number
-     * @returns HeatmapRenderer instance
-     */
+   * Set the maximum data value for relative gradient calculations
+   * @param max - number
+   * @returns instance
+   */
     setMax(max) {
         return this.renderer.setMax(max);
     }
     /**
-     * Set the minimum data value for relative gradient calculations
-     * @param min - number
-     * @returns HeatmapRenderer instance
-     */
+   * Set the minimum data value for relative gradient calculations
+   * @param min - number
+   * @returns instance
+   */
     setMin(min) {
         return this.renderer.setMin(min);
     }
     /**
-     * Accepts array of objects with color value and offset
-     * @param gradient - Color Gradient
-     * @returns HeatmapRenderer instance
-     */
+   * Accepts array of objects with color value and offset
+   * @param gradient - Color Gradient
+   * @returns instance
+   */
     setGradient(gradient) {
         return this.renderer.setGradient(gradient);
     }
     /**
-     * Set the translate transformation on the canvas
-     * @param translate - Accepts array [x, y]
-     * @returns HeatmapRenderer instance
-     */
+   * Set the translate transformation on the canvas
+   * @param translate - Accepts array [x, y]
+   * @returns instance
+   */
     setTranslate(translate) {
-        this.renderer.setTranslate(translate);
+        return this.renderer.setTranslate(translate);
     }
     /**
-     * Set the zoom transformation on the canvas
-     * @param zoom - Accepts float value
-     * @returns HeatmapRenderer instance
-     */
+   * Set the zoom transformation on the canvas
+   * @param zoom - Accepts float value
+   * @returns instance
+   */
     setZoom(zoom) {
         return this.renderer.setZoom(zoom);
     }
     /**
-     * Set the  rotation transformation on the canvas
-     * @param angle - Accepts angle in radians
-     * @returns HeatmapRenderer instance
-     */
+   * Set the  rotation transformation on the canvas
+   * @param angle - Accepts angle in radians
+   * @returns instance
+   */
     setRotationAngle(angle) {
         return this.renderer.setRotationAngle(angle);
     }
     /**
-     * Set the point radius
-     * @param size - Accepts float value
-     * @returns HeatmapRenderer instance
-     */
+   * Set the point radius
+   * @param size - Accepts float value
+   * @returns instance
+   */
     setSize(size) {
         return this.renderer.setSize(size);
     }
     /**
-     * Set the intensity factor
-     * @param intensity - Accepts float value
-     * @returns HeatmapRenderer instance
-     */
+   * Set the intensity factor
+   * @param intensity - Accepts float value
+   * @returns instance
+   */
     setIntensity(intensity) {
         return this.renderer.setIntensity(intensity);
     }
     /**
-     * Set the opacity factor
-     * @param opacity - The opacity factor.
-     * @returns HeatmapRenderer instance
-     */
+   * Set the opacity factor
+   * @param opacity - The opacity factor.
+   * @returns instance
+   */
     setOpacity(opacity) {
         return this.renderer.setOpacity(opacity);
     }
     /**
-     * Set the background image
-     * @param config - Accepts Object with { Url, height, width, x, and y} properties
-     * @returns HeatmapRenderer instance
-     */
+   * Set the background image
+   * @param config - Accepts Object with { Url, height, width, x, and y} properties
+   * @returns instance
+   */
     setBackgroundImage(config) {
-        this.renderer.setBackgroundImage(config);
+        return this.renderer.setBackgroundImage(config);
     }
     /**
-     * After adding data points, need to invoke .render() method to update the heatmap
-     * @param data - The data points with 'x', 'y' and 'value'
-     * @param transIntactFlag - Flag indicating whether to apply existing heatmap transformations on the newly added data points
-     * @returns HeatmapRenderer instance
-     */
+   * After adding data points, need to invoke .render() method to update the heatmap
+   * @param data - The data points with 'x', 'y' and 'value'
+   * @param transIntactFlag - Flag indicating whether to apply existing heatmap transformations on the newly added data points
+   * @returns instance
+   */
     addData(data, transIntactFlag) {
         return this.renderer.addData(data, transIntactFlag);
     }
     /**
-     * @param data - Accepts an array of data points with 'x', 'y' and 'value'
-     * @returns HeatmapRenderer instance
-     */
+   * @param data - Accepts an array of data points with 'x', 'y' and 'value'
+   * @returns instance
+   */
     renderData(data) {
         return this.renderer.renderData(data);
     }
     /**
-     * Method to re-render the heatmap. This method needs to be invoked as and when configurations get changed
-     */
+   * Method to re-render the heatmap. This method needs to be invoked as and when configurations get changed
+   */
     render() {
         this.renderer.render();
     }
     /**
-     * Get projected co-ordinates relative to the heatmap layer
-     * @param data - The data point to project.
-     * @returns projected data point.
-     */
+   * Get projected co-ordinates relative to the heatmap layer
+   * @param data - The data point to project.
+   * @returns projected data point.
+   */
     projection(data) {
-        this.renderer.projection(data);
+        return this.renderer.projection(data);
     }
     /**
-     * Clears canvas
-     */
+   * Clears canvas
+   */
     clear() {
         this.renderer.clear();
     }
 }
 
-function Heatmap(context, config) {
-    return new HeatmapInternal(context, config);
+function main (context, config) {
+    return new Heatmap(context, config);
 }
 
-export { Heatmap as default };
+export { main as default };

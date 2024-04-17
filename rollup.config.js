@@ -29,10 +29,10 @@ export default [{
 	}],
 	plugins: [
 		typescript(),
-		// eslint({
-		// 	fix: true,
-		// 	throwOnError: true
-		// }),
+		eslint({
+			fix: true,
+			throwOnError: true
+		}),
 		babel({
 	      babelHelpers: 'bundled',
 	      exclude: 'node_modules/**' // Don't transpile node_modules
@@ -56,10 +56,10 @@ export default [{
 	plugins: [
 		typescript(),
 		terser(),
-		// eslint({
-		// 	fix: true,
-		// 	throwOnError: true
-		// }),
+		eslint({
+			fix: true,
+			throwOnError: true
+		}),
 		babel({
 	      babelHelpers: 'bundled',
 	      exclude: 'node_modules/**' // Don't transpile node_modules

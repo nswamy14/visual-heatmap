@@ -1,5 +1,5 @@
 export const GradShader = {
-  vertex: `#version 300 es
+	vertex: `#version 300 es
 				in vec2 a_position;
 				in float a_intensity;
 				uniform float u_size;
@@ -29,7 +29,7 @@ export const GradShader = {
 					gl_PointSize = u_size * u_density;
 					v_i = a_intensity;
 				}`,
-  fragment: `#version 300 es
+	fragment: `#version 300 es
 				precision mediump float;
 				uniform float u_max;
 				uniform float u_min;
@@ -48,7 +48,7 @@ export const GradShader = {
 };
 
 export const ColorShader = {
-  vertex: `#version 300 es
+	vertex: `#version 300 es
 				precision highp float;
 				in vec2 a_texCoord;
 				out vec2 v_texCoord;
@@ -58,7 +58,7 @@ export const ColorShader = {
 					v_texCoord = a_texCoord;
 				}
 	`,
-  fragment: `#version 300 es
+	fragment: `#version 300 es
 					precision mediump float;
 					in vec2 v_texCoord;
 					out vec4 fragColor;
@@ -103,7 +103,7 @@ export const ColorShader = {
 };
 
 export const ImageShader = {
-  vertex: `#version 300 es
+	vertex: `#version 300 es
                     precision highp float;
                     in vec2 a_position;
                     in vec2 a_texCoord;
@@ -138,7 +138,7 @@ export const ImageShader = {
 						v_texCoord = a_texCoord;
                     }
           		`,
-  fragment: `#version 300 es
+	fragment: `#version 300 es
                     precision mediump float;
                     uniform sampler2D u_image;
                     in vec2 v_texCoord;
