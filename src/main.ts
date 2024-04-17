@@ -1,6 +1,7 @@
-import { Heatmap } from "./heatmap";
+// import { Heatmap } from "./heatmap";
+import { HeatmapRenderer } from "./heatmap";
 import { HeatmapConfig } from "./types";
 
 export default function (context: string | HTMLElement, config: HeatmapConfig) {
-	return new Heatmap(context, config);
+	return new HeatmapRenderer(context, config);
 }

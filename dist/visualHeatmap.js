@@ -365,7 +365,8 @@
 	        offset: offsets,
 	    };
 	}
-	function extractData(data, self) {
+	function extractData(data) {
+	    const self = this;
 	    const len = data.length;
 	    let { posVec = new Float32Array(), rVec = new Float32Array() } = (self.hearmapExData || {});
 	    if (self.pLen !== len) {
@@ -799,7 +800,7 @@
 	        if (data.constructor !== Array) {
 	            throw new Error("Expected Array type");
 	        }
-	        this.hearmapExData = extractData(data, this);
+	        this.hearmapExData = extractData.call(this, data);
 	        this.heatmapData = data;
 	        this.render();
 	        return this;
@@ -836,145 +837,9 @@
 	    }
 	}
 
-	// Internal class that encapsulates private properties and methods
-	class Heatmap {
-	    constructor(context, config) {
-	        this.renderer = new HeatmapRenderer(context, config);
-	        this.ctx = this.renderer.ctx;
-	        this.ratio = this.renderer.ratio;
-	        this.width = this.renderer.width;
-	        this.height = this.renderer.height;
-	        this.min = this.renderer.min;
-	        this.max = this.renderer.max;
-	        this.size = this.renderer.size;
-	        this.zoom = this.renderer.zoom;
-	        this.angle = this.renderer.angle;
-	        this.intensity = this.renderer.intensity;
-	        this.translate = this.renderer.translate;
-	        this.opacity = this.renderer.opacity;
-	        this.gradient = this.renderer.gradient;
-	        this.imageConfig = this.renderer.imageConfig;
-	    }
-	    /**
-	   * Set the maximum data value for relative gradient calculations
-	   * @param max - number
-	   * @returns instance
-	   */
-	    setMax(max) {
-	        return this.renderer.setMax(max);
-	    }
-	    /**
-	   * Set the minimum data value for relative gradient calculations
-	   * @param min - number
-	   * @returns instance
-	   */
-	    setMin(min) {
-	        return this.renderer.setMin(min);
-	    }
-	    /**
-	   * Accepts array of objects with color value and offset
-	   * @param gradient - Color Gradient
-	   * @returns instance
-	   */
-	    setGradient(gradient) {
-	        return this.renderer.setGradient(gradient);
-	    }
-	    /**
-	   * Set the translate transformation on the canvas
-	   * @param translate - Accepts array [x, y]
-	   * @returns instance
-	   */
-	    setTranslate(translate) {
-	        return this.renderer.setTranslate(translate);
-	    }
-	    /**
-	   * Set the zoom transformation on the canvas
-	   * @param zoom - Accepts float value
-	   * @returns instance
-	   */
-	    setZoom(zoom) {
-	        return this.renderer.setZoom(zoom);
-	    }
-	    /**
-	   * Set the  rotation transformation on the canvas
-	   * @param angle - Accepts angle in radians
-	   * @returns instance
-	   */
-	    setRotationAngle(angle) {
-	        return this.renderer.setRotationAngle(angle);
-	    }
-	    /**
-	   * Set the point radius
-	   * @param size - Accepts float value
-	   * @returns instance
-	   */
-	    setSize(size) {
-	        return this.renderer.setSize(size);
-	    }
-	    /**
-	   * Set the intensity factor
-	   * @param intensity - Accepts float value
-	   * @returns instance
-	   */
-	    setIntensity(intensity) {
-	        return this.renderer.setIntensity(intensity);
-	    }
-	    /**
-	   * Set the opacity factor
-	   * @param opacity - The opacity factor.
-	   * @returns instance
-	   */
-	    setOpacity(opacity) {
-	        return this.renderer.setOpacity(opacity);
-	    }
-	    /**
-	   * Set the background image
-	   * @param config - Accepts Object with { Url, height, width, x, and y} properties
-	   * @returns instance
-	   */
-	    setBackgroundImage(config) {
-	        return this.renderer.setBackgroundImage(config);
-	    }
-	    /**
-	   * After adding data points, need to invoke .render() method to update the heatmap
-	   * @param data - The data points with 'x', 'y' and 'value'
-	   * @param transIntactFlag - Flag indicating whether to apply existing heatmap transformations on the newly added data points
-	   * @returns instance
-	   */
-	    addData(data, transIntactFlag) {
-	        return this.renderer.addData(data, transIntactFlag);
-	    }
-	    /**
-	   * @param data - Accepts an array of data points with 'x', 'y' and 'value'
-	   * @returns instance
-	   */
-	    renderData(data) {
-	        return this.renderer.renderData(data);
-	    }
-	    /**
-	   * Method to re-render the heatmap. This method needs to be invoked as and when configurations get changed
-	   */
-	    render() {
-	        this.renderer.render();
-	    }
-	    /**
-	   * Get projected co-ordinates relative to the heatmap layer
-	   * @param data - The data point to project.
-	   * @returns projected data point.
-	   */
-	    projection(data) {
-	        return this.renderer.projection(data);
-	    }
-	    /**
-	   * Clears canvas
-	   */
-	    clear() {
-	        this.renderer.clear();
-	    }
-	}
-
+	// import { Heatmap } from "./heatmap";
 	function main (context, config) {
-	    return new Heatmap(context, config);
+	    return new HeatmapRenderer(context, config);
 	}
 
 	return main;

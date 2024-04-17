@@ -22,13 +22,30 @@ export default [{
 		format: 'esm',
 		name: 'visualHeatmap'
 	}, {
+		file: 'dist/visualHeatmap.esm.min.js',
+		banner,
+		format: 'esm',
+		name: 'visualHeatmap',
+		compact: true,
+		plugins: [terser()]
+	}, {
 		banner,
 		file: 'dist/visualHeatmap.js',
 		format: 'umd',
 		name: 'visualHeatmap'
+	}, {
+		file: 'dist/visualHeatmap.min.js',
+		banner,
+		format: 'umd',
+		name: 'visualHeatmap',
+		compact: true,
+		plugins: [terser()]
 	}],
 	plugins: [
-		typescript(),
+		typescript({
+			tsconfig: 'tsconfig.json',
+			declarationDir: 'dist/types'
+		}),
 		eslint({
 			fix: true,
 			throwOnError: true
@@ -38,30 +55,4 @@ export default [{
 	      exclude: 'node_modules/**' // Don't transpile node_modules
 	    }),
 	]
-}, {
-	input: './src/main.ts',
-	output: [{
-		file: 'dist/visualHeatmap.min.js',
-		banner,
-		format: 'umd',
-		name: 'visualHeatmap',
-		compact: true
-	}, {
-		file: 'dist/visualHeatmap.esm.min.js',
-		banner,
-		format: 'esm',
-		name: 'visualHeatmap',
-		compact: true
-	}],
-	plugins: [
-		typescript(),
-		terser(),
-		eslint({
-			fix: true,
-			throwOnError: true
-		}),
-		babel({
-	      babelHelpers: 'bundled',
-	      exclude: 'node_modules/**' // Don't transpile node_modules
-	    })]
 }];
