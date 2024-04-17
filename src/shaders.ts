@@ -44,7 +44,7 @@ export const GradShader = {
 					if(r <= 1.0) {
 						fragColor = vec4(0, 0, 0, ((v_i - u_min) / (deno)) * u_intensity * (1.0 - sqrt(r)));
 					}
-				}`
+				}`,
 };
 
 export const ColorShader = {
@@ -99,7 +99,7 @@ export const ColorShader = {
 							fragColor = vec4(0.0, 0.0, 0.0, 0.0);
 						}
 					}
-		`
+		`,
 };
 
 export const ImageShader = {
@@ -146,5 +146,5 @@ export const ImageShader = {
                     void main() {
                       fragColor = texture(u_image, v_texCoord);
                     }
-                    `
+                    `,
 };

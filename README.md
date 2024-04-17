@@ -129,7 +129,7 @@ Api to set point radius. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 ### instance.setGradient(gradient)
-Api to set color gradient. Accepts array of objects with color, value and offset.
+Api to set color gradient. Accepts array of objects with color value and offset.
 
 ### instance.setIntensity(number)
 Api to set Intensity factor. Accepts float value as an input.

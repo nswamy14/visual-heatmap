@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "lib": ["es2022", "DOM"],
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "emitDeclarationOnly": true
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
