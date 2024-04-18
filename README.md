@@ -147,6 +147,9 @@ Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 Api to get projected co-ordinates relative to the heatmap layer.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmapWithLabels.html)
 
+### instance.resize()
+Api to rerender heatmep on parent container resizes.
+
 ### instance.clear()
 Api to clear canvas.
 
