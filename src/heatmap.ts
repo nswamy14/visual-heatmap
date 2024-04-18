@@ -58,12 +58,10 @@ function extractData(this: HeatmapRenderer,data: Point[]): HearmapExData {
 	let { posVec = new Float32Array(), rVec = new Float32Array() } =
     (self.hearmapExData || {}) as HearmapExData;
 
-	if (self.pLen !== len) {
-		self.buffer = new ArrayBuffer(len * 8);
-		posVec = new Float32Array(self.buffer);
-		self.buffer2 = new ArrayBuffer(len * 4);
-		rVec = new Float32Array(self.buffer2);
-		self.pLen = len;
+	if (self.pDataLength !== len) {
+		posVec = new Float32Array( new ArrayBuffer(len * 8));
+		rVec = new Float32Array(new ArrayBuffer(len * 4));
+		self.pDataLength = len;
 	}
 
 	const dataMinMaxValue = {
@@ -301,6 +299,12 @@ export class HeatmapRenderer {
 	configMax: number | null = null;
 	min: number = 0;
 	max: number = 0;
+	size: number = 0;
+	zoom: number = 0;
+	angle: number = 0;
+	intensity: number = 0;
+	translate: [number, number] = [0, 0];
+	opacity: number = 0;
 	hearmapExData: HearmapExData | object = {};
 
 	gradShadOP!: ShaderProgram;
@@ -308,17 +312,9 @@ export class HeatmapRenderer {
 	imageShaOP!: ShaderProgram;
 	fbTexObj!: WebGLTexture;
 	fbo!: WebGLFramebuffer;
-	size: number = 0;
-	zoom: number = 0;
-	angle: number = 0;
-	intensity: number = 0;
-	translate: [number, number] = [0, 0];
-	opacity: number = 0;
 	gradient: MappedGradient | null = null;
 	imageTexture: WebGLTexture | null = null;
-	pLen: number | undefined = undefined;
-	buffer: ArrayBuffer | undefined = undefined;
-	buffer2: ArrayBuffer | undefined = undefined;
+	pDataLength: number | undefined = undefined;
 
 	private layer!: HTMLCanvasElement;
 	private dom!: Element;
@@ -438,6 +434,10 @@ export class HeatmapRenderer {
 		}
 	}
 
+	/**
+    * Invoke resize method to rerender as container resizes.
+    */
+
 	resize() {
 		const height = this.dom.clientHeight;
 		const width = this.dom.clientWidth;
@@ -447,15 +447,20 @@ export class HeatmapRenderer {
 		this.layer.style.width = `${width}px`;
 		this.width = width;
 		this.height = height;
-    this.ctx!.viewport(0, 0, this.ctx!.canvas.width, this.ctx!.canvas.height);
-    /* Perform update */
-    this.render();
+    	this.ctx!.viewport(0, 0, this.ctx!.canvas.width, this.ctx!.canvas.height);
+    	/* Perform update */
+    	this.render();
 	}
 
 	clear() {
-    this.ctx!.clear(this.ctx!.COLOR_BUFFER_BIT | this.ctx!.DEPTH_BUFFER_BIT);
+    	this.ctx!.clear(this.ctx!.COLOR_BUFFER_BIT | this.ctx!.DEPTH_BUFFER_BIT);
 	}
 
+	/**
+    * Set the maximum data value for relative gradient calculations
+    * @param max - number
+    * @returns instance
+    */
 	setMax(max: number): HeatmapRenderer {
 		if (isNullUndefined(max) || isNotNumber(max)) {
 			throw new Error("Invalid max: Expected Number");
@@ -465,6 +470,11 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * Set the minimum data value for relative gradient calculations
+   * @param min - number
+   * @returns instance
+   */
 	setMin(min: number): HeatmapRenderer {
 		if (isNullUndefined(min) || isNotNumber(min)) {
 			throw new Error("Invalid min: Expected Number");
@@ -474,11 +484,21 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * Accepts array of objects with color value and offset
+   * @param gradient - Color Gradient
+   * @returns instance
+   */
 	setGradient(gradient: GradientElement[]): HeatmapRenderer {
 		this.gradient = gradientMapper(gradient);
 		return this;
 	}
 
+	/**
+   * Set the translate transformation on the canvas
+   * @param translate - Accepts array [x, y]
+   * @returns instance
+   */
 	setTranslate(translate: Translate) {
 		if (translate.constructor !== Array) {
 			throw new Error("Invalid Translate: Translate has to be of Array type");
@@ -490,6 +510,11 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * Set the zoom transformation on the canvas
+   * @param zoom - Accepts float value
+   * @returns instance
+   */
 	setZoom(zoom: number): HeatmapRenderer {
 		if (isNullUndefined(zoom) || isNotNumber(zoom)) {
 			throw new Error("Invalid zoom: Expected Number");
@@ -499,6 +524,11 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * Set the  rotation transformation on the canvas
+   * @param angle - Accepts angle in radians
+   * @returns instance
+   */
 	setRotationAngle(angle: number): HeatmapRenderer {
 		if (isNullUndefined(angle) || isNotNumber(angle)) {
 			throw new Error("Invalid Angle: Expected Number");
@@ -508,6 +538,11 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * Set the point radius
+   * @param size - Accepts float value
+   * @returns instance
+   */
 	setSize(size: number): HeatmapRenderer {
 		if (isNullUndefined(size) || isNotNumber(size)) {
 			throw new Error("Invalid Size: Expected Number");
@@ -517,6 +552,11 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * Set the intensity factor
+   * @param intensity - Accepts float value
+   * @returns instance
+   */
 	setIntensity(intensity: number): HeatmapRenderer {
 		if (isNullUndefined(intensity) || isNotNumber(intensity)) {
 			this.intensity = 1.0; // applying default intensity
@@ -531,6 +571,11 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * Set the opacity factor
+   * @param opacity - The opacity factor.
+   * @returns instance
+   */
 	setOpacity(opacity: number): HeatmapRenderer {
 		if (isNullUndefined(opacity) || isNotNumber(opacity)) {
 			throw new Error("Invalid Opacity: Expected Number");
@@ -543,6 +588,11 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * Set the background image
+   * @param config - Accepts Object with { Url, height, width, x, and y} properties
+   * @returns instance
+   */
 	setBackgroundImage(config: BackgroundImageConfig) {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const self = this;
@@ -618,12 +668,21 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * Clears heatmap
+   */
 	clearData() {
 		this.heatmapData = [];
 		this.hearmapExData = {};
 		this.render();
 	}
 
+	/**
+   * After adding data points, need to invoke .render() method to update the heatmap
+   * @param data - The data points with 'x', 'y' and 'value'
+   * @param transIntactFlag - Flag indicating whether to apply existing heatmap transformations on the newly added data points
+   * @returns instance
+   */
 	addData(data: Point[], transIntactFlag: boolean): HeatmapRenderer {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const self = this;
@@ -637,6 +696,10 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * @param data - Accepts an array of data points with 'x', 'y' and 'value'
+   * @returns instance
+   */
 	renderData(data: Point[]): HeatmapRenderer {
 		if (data.constructor !== Array) {
 			throw new Error("Expected Array type");
@@ -647,10 +710,18 @@ export class HeatmapRenderer {
 		return this;
 	}
 
+	/**
+   * Method to re-render the heatmap. This method needs to be invoked as and when configurations get changed
+   */
 	render() {
 		renderExec.call(this);
 	}
 
+	/**
+   * Get projected co-ordinates relative to the heatmap layer
+   * @param data - The data point to project.
+   * @returns projected data point.
+   */
 	projection(data: Point) {
 		// Pre-compute constants and repetitive calculations
 		const zoomFactor = this.zoom || 0.1;

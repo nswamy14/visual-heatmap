@@ -1,4 +1,3 @@
-// import { Heatmap } from "./heatmap";
 import { HeatmapRenderer } from "./heatmap";
 import { HeatmapConfig } from "./types";
 

@@ -369,12 +369,10 @@
 	    const self = this;
 	    const len = data.length;
 	    let { posVec = new Float32Array(), rVec = new Float32Array() } = (self.hearmapExData || {});
-	    if (self.pLen !== len) {
-	        self.buffer = new ArrayBuffer(len * 8);
-	        posVec = new Float32Array(self.buffer);
-	        self.buffer2 = new ArrayBuffer(len * 4);
-	        rVec = new Float32Array(self.buffer2);
-	        self.pLen = len;
+	    if (self.pDataLength !== len) {
+	        posVec = new Float32Array(new ArrayBuffer(len * 8));
+	        rVec = new Float32Array(new ArrayBuffer(len * 4));
+	        self.pDataLength = len;
 	    }
 	    const dataMinMaxValue = {
 	        min: Infinity,
@@ -536,18 +534,16 @@
 	        this.configMax = null;
 	        this.min = 0;
 	        this.max = 0;
-	        this.hearmapExData = {};
 	        this.size = 0;
 	        this.zoom = 0;
 	        this.angle = 0;
 	        this.intensity = 0;
 	        this.translate = [0, 0];
 	        this.opacity = 0;
+	        this.hearmapExData = {};
 	        this.gradient = null;
 	        this.imageTexture = null;
-	        this.pLen = undefined;
-	        this.buffer = undefined;
-	        this.buffer2 = undefined;
+	        this.pDataLength = undefined;
 	        this.imgWidth = 0;
 	        this.imgHeight = 0;
 	        this.heatmapData = [];
@@ -655,6 +651,9 @@
 	            console.error(error);
 	        }
 	    }
+	    /**
+	    * Invoke resize method to rerender as container resizes.
+	    */
 	    resize() {
 	        const height = this.dom.clientHeight;
 	        const width = this.dom.clientWidth;
@@ -671,6 +670,11 @@
 	    clear() {
 	        this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
 	    }
+	    /**
+	    * Set the maximum data value for relative gradient calculations
+	    * @param max - number
+	    * @returns instance
+	    */
 	    setMax(max) {
 	        if (isNullUndefined(max) || isNotNumber(max)) {
 	            throw new Error("Invalid max: Expected Number");
@@ -678,6 +682,11 @@
 	        this.configMax = max;
 	        return this;
 	    }
+	    /**
+	   * Set the minimum data value for relative gradient calculations
+	   * @param min - number
+	   * @returns instance
+	   */
 	    setMin(min) {
 	        if (isNullUndefined(min) || isNotNumber(min)) {
 	            throw new Error("Invalid min: Expected Number");
@@ -685,10 +694,20 @@
 	        this.configMin = min;
 	        return this;
 	    }
+	    /**
+	   * Accepts array of objects with color value and offset
+	   * @param gradient - Color Gradient
+	   * @returns instance
+	   */
 	    setGradient(gradient) {
 	        this.gradient = gradientMapper(gradient);
 	        return this;
 	    }
+	    /**
+	   * Set the translate transformation on the canvas
+	   * @param translate - Accepts array [x, y]
+	   * @returns instance
+	   */
 	    setTranslate(translate) {
 	        if (translate.constructor !== Array) {
 	            throw new Error("Invalid Translate: Translate has to be of Array type");
@@ -699,6 +718,11 @@
 	        this.translate = translate;
 	        return this;
 	    }
+	    /**
+	   * Set the zoom transformation on the canvas
+	   * @param zoom - Accepts float value
+	   * @returns instance
+	   */
 	    setZoom(zoom) {
 	        if (isNullUndefined(zoom) || isNotNumber(zoom)) {
 	            throw new Error("Invalid zoom: Expected Number");
@@ -706,6 +730,11 @@
 	        this.zoom = zoom;
 	        return this;
 	    }
+	    /**
+	   * Set the  rotation transformation on the canvas
+	   * @param angle - Accepts angle in radians
+	   * @returns instance
+	   */
 	    setRotationAngle(angle) {
 	        if (isNullUndefined(angle) || isNotNumber(angle)) {
 	            throw new Error("Invalid Angle: Expected Number");
@@ -713,6 +742,11 @@
 	        this.angle = angle;
 	        return this;
 	    }
+	    /**
+	   * Set the point radius
+	   * @param size - Accepts float value
+	   * @returns instance
+	   */
 	    setSize(size) {
 	        if (isNullUndefined(size) || isNotNumber(size)) {
 	            throw new Error("Invalid Size: Expected Number");
@@ -720,6 +754,11 @@
 	        this.size = size;
 	        return this;
 	    }
+	    /**
+	   * Set the intensity factor
+	   * @param intensity - Accepts float value
+	   * @returns instance
+	   */
 	    setIntensity(intensity) {
 	        if (isNullUndefined(intensity) || isNotNumber(intensity)) {
 	            this.intensity = 1.0; // applying default intensity
@@ -732,6 +771,11 @@
 	        this.intensity = intensity;
 	        return this;
 	    }
+	    /**
+	   * Set the opacity factor
+	   * @param opacity - The opacity factor.
+	   * @returns instance
+	   */
 	    setOpacity(opacity) {
 	        if (isNullUndefined(opacity) || isNotNumber(opacity)) {
 	            throw new Error("Invalid Opacity: Expected Number");
@@ -742,6 +786,11 @@
 	        this.opacity = opacity;
 	        return this;
 	    }
+	    /**
+	   * Set the background image
+	   * @param config - Accepts Object with { Url, height, width, x, and y} properties
+	   * @returns instance
+	   */
 	    setBackgroundImage(config) {
 	        // eslint-disable-next-line @typescript-eslint/no-this-alias
 	        const self = this;
@@ -779,11 +828,20 @@
 	        });
 	        return this;
 	    }
+	    /**
+	   * Clears heatmap
+	   */
 	    clearData() {
 	        this.heatmapData = [];
 	        this.hearmapExData = {};
 	        this.render();
 	    }
+	    /**
+	   * After adding data points, need to invoke .render() method to update the heatmap
+	   * @param data - The data points with 'x', 'y' and 'value'
+	   * @param transIntactFlag - Flag indicating whether to apply existing heatmap transformations on the newly added data points
+	   * @returns instance
+	   */
 	    addData(data, transIntactFlag) {
 	        // eslint-disable-next-line @typescript-eslint/no-this-alias
 	        const self = this;
@@ -796,6 +854,10 @@
 	        this.renderData(this.heatmapData);
 	        return this;
 	    }
+	    /**
+	   * @param data - Accepts an array of data points with 'x', 'y' and 'value'
+	   * @returns instance
+	   */
 	    renderData(data) {
 	        if (data.constructor !== Array) {
 	            throw new Error("Expected Array type");
@@ -805,9 +867,17 @@
 	        this.render();
 	        return this;
 	    }
+	    /**
+	   * Method to re-render the heatmap. This method needs to be invoked as and when configurations get changed
+	   */
 	    render() {
 	        renderExec.call(this);
 	    }
+	    /**
+	   * Get projected co-ordinates relative to the heatmap layer
+	   * @param data - The data point to project.
+	   * @returns projected data point.
+	   */
 	    projection(data) {
 	        // Pre-compute constants and repetitive calculations
 	        const zoomFactor = this.zoom || 0.1;
@@ -837,7 +907,6 @@
 	    }
 	}
 
-	// import { Heatmap } from "./heatmap";
 	function main (context, config) {
 	    return new HeatmapRenderer(context, config);
 	}
