@@ -363,10 +363,10 @@ function extractData(data) {
     const self = this;
     const len = data.length;
     let { posVec = new Float32Array(), rVec = new Float32Array() } = (self.hearmapExData || {});
-    if (self.pDataLength !== len) {
+    if (self._pDataLength !== len) {
         posVec = new Float32Array(new ArrayBuffer(len * 8));
         rVec = new Float32Array(new ArrayBuffer(len * 4));
-        self.pDataLength = len;
+        self._pDataLength = len;
     }
     const dataMinMaxValue = {
         min: Infinity,
@@ -417,13 +417,13 @@ function renderExec() {
         return;
     }
     ctx.clear(ctx.COLOR_BUFFER_BIT | ctx.DEPTH_BUFFER_BIT);
-    ctx.bindTexture(ctx.TEXTURE_2D, this.fbTexObj);
+    ctx.bindTexture(ctx.TEXTURE_2D, this._fbTexObj);
     ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, this.width * this.ratio, this.height * this.ratio, 0, ctx.RGBA, ctx.UNSIGNED_BYTE, null);
     ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
     ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
     ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.LINEAR);
-    ctx.bindFramebuffer(ctx.FRAMEBUFFER, this.fbo);
-    ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, this.fbTexObj, 0);
+    ctx.bindFramebuffer(ctx.FRAMEBUFFER, this._fbo);
+    ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, this._fbTexObj, 0);
     if (this.hearmapExData) {
         renderHeatGrad.call(this, ctx, this.hearmapExData);
     }
@@ -435,23 +435,24 @@ function renderExec() {
 }
 function renderHeatGrad(ctx, exData) {
     var _a, _b, _c, _d;
-    ctx.useProgram(this.gradShadOP.program);
+    ctx.useProgram(this._gradShadOP.program);
+    const { u_resolution, u_translate, u_zoom, u_angle, u_density, u_max, u_min, u_size, u_intensity } = this._gradShadOP.uniform;
     this.min =
         this.configMin !== null ? this.configMin : (_b = (_a = exData === null || exData === void 0 ? void 0 : exData.minMax) === null || _a === void 0 ? void 0 : _a.min) !== null && _b !== void 0 ? _b : 0;
     this.max =
         this.configMax !== null ? this.configMax : (_d = (_c = exData === null || exData === void 0 ? void 0 : exData.minMax) === null || _c === void 0 ? void 0 : _c.max) !== null && _d !== void 0 ? _d : 0;
-    this.gradShadOP.attr[0].data = exData.posVec || [];
-    this.gradShadOP.attr[1].data = exData.rVec || [];
-    ctx.uniform2fv(this.gradShadOP.uniform.u_resolution, new Float32Array([this.width * this.ratio, this.height * this.ratio]));
-    ctx.uniform2fv(this.gradShadOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
-    ctx.uniform1f(this.gradShadOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
-    ctx.uniform1f(this.gradShadOP.uniform.u_angle, this.angle);
-    ctx.uniform1f(this.gradShadOP.uniform.u_density, this.ratio);
-    ctx.uniform1f(this.gradShadOP.uniform.u_max, this.max);
-    ctx.uniform1f(this.gradShadOP.uniform.u_min, this.min);
-    ctx.uniform1f(this.gradShadOP.uniform.u_size, this.size);
-    ctx.uniform1f(this.gradShadOP.uniform.u_intensity, this.intensity);
-    this.gradShadOP.attr.forEach(function (d) {
+    this._gradShadOP.attr[0].data = exData.posVec || [];
+    this._gradShadOP.attr[1].data = exData.rVec || [];
+    ctx.uniform2fv(u_resolution, new Float32Array([this.width * this.ratio, this.height * this.ratio]));
+    ctx.uniform2fv(u_translate, new Float32Array([this.translate[0], this.translate[1]]));
+    ctx.uniform1f(u_zoom, this.zoom ? this.zoom : 0.01);
+    ctx.uniform1f(u_angle, this.angle);
+    ctx.uniform1f(u_density, this.ratio);
+    ctx.uniform1f(u_max, this.max);
+    ctx.uniform1f(u_min, this.min);
+    ctx.uniform1f(u_size, this.size);
+    ctx.uniform1f(u_intensity, this.intensity);
+    this._gradShadOP.attr.forEach(function (d) {
         ctx.bindBuffer(d.bufferType, d.buffer);
         ctx.bufferData(d.bufferType, d.data, d.drawType);
         ctx.enableVertexAttribArray(d.attribute);
@@ -461,13 +462,14 @@ function renderHeatGrad(ctx, exData) {
 }
 function renderImage(ctx, imageConfig) {
     const { x = 0, y = 0, width = 0, height = 0 } = imageConfig;
-    ctx.useProgram(this.imageShaOP.program);
-    ctx.uniform2fv(this.imageShaOP.uniform.u_resolution, new Float32Array([this.width * this.ratio, this.height * this.ratio]));
-    ctx.uniform2fv(this.imageShaOP.uniform.u_translate, new Float32Array([this.translate[0], this.translate[1]]));
-    ctx.uniform1f(this.imageShaOP.uniform.u_zoom, this.zoom ? this.zoom : 0.01);
-    ctx.uniform1f(this.imageShaOP.uniform.u_angle, this.angle);
-    ctx.uniform1f(this.imageShaOP.uniform.u_density, this.ratio);
-    this.imageShaOP.attr[0].data = new Float32Array([
+    const { u_resolution, u_translate, u_zoom, u_angle, u_density, u_image } = this._imageShaOP.uniform;
+    ctx.useProgram(this._imageShaOP.program);
+    ctx.uniform2fv(u_resolution, new Float32Array([this.width * this.ratio, this.height * this.ratio]));
+    ctx.uniform2fv(u_translate, new Float32Array([this.translate[0], this.translate[1]]));
+    ctx.uniform1f(u_zoom, this.zoom ? this.zoom : 0.01);
+    ctx.uniform1f(u_angle, this.angle);
+    ctx.uniform1f(u_density, this.ratio);
+    this._imageShaOP.attr[0].data = new Float32Array([
         x,
         y,
         x + width,
@@ -481,32 +483,33 @@ function renderImage(ctx, imageConfig) {
         x + width,
         y + height,
     ]);
-    this.imageShaOP.attr.forEach(function (d) {
+    this._imageShaOP.attr.forEach(function (d) {
         ctx.bindBuffer(d.bufferType, d.buffer);
         ctx.bufferData(d.bufferType, d.data, d.drawType);
         ctx.enableVertexAttribArray(d.attribute);
         ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0);
     });
-    ctx.uniform1i(this.imageShaOP.uniform.u_image, 0);
+    ctx.uniform1i(u_image, 0);
     ctx.activeTexture(this.ctx.TEXTURE0);
-    ctx.bindTexture(this.ctx.TEXTURE_2D, this.imageTexture);
+    ctx.bindTexture(this.ctx.TEXTURE_2D, this._imageTexture);
     ctx.drawArrays(ctx.TRIANGLES, 0, 6);
 }
 function renderColorGradiant(ctx) {
-    ctx.useProgram(this.colorShadOP.program);
-    ctx.uniform4fv(this.colorShadOP.uniform.u_colorArr, this.gradient.value);
-    ctx.uniform1f(this.colorShadOP.uniform.u_colorCount, this.gradient.length);
-    ctx.uniform1fv(this.colorShadOP.uniform.u_offset, new Float32Array(this.gradient.offset));
-    ctx.uniform1f(this.colorShadOP.uniform.u_opacity, this.opacity);
-    this.colorShadOP.attr.forEach(function (d) {
+    const { u_colorArr, u_colorCount, u_offset, u_opacity, u_framebuffer } = this._colorShadOP.uniform;
+    ctx.useProgram(this._colorShadOP.program);
+    ctx.uniform4fv(u_colorArr, this.gradient.value);
+    ctx.uniform1f(u_colorCount, this.gradient.length);
+    ctx.uniform1fv(u_offset, new Float32Array(this.gradient.offset));
+    ctx.uniform1f(u_opacity, this.opacity);
+    this._colorShadOP.attr.forEach(function (d) {
         ctx.bindBuffer(d.bufferType, d.buffer);
         ctx.bufferData(d.bufferType, d.data, d.drawType);
         ctx.enableVertexAttribArray(d.attribute);
         ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0);
     });
-    ctx.uniform1i(this.colorShadOP.uniform.u_framebuffer, 0);
+    ctx.uniform1i(u_framebuffer, 0);
     ctx.activeTexture(ctx.TEXTURE0);
-    ctx.bindTexture(ctx.TEXTURE_2D, this.fbTexObj);
+    ctx.bindTexture(ctx.TEXTURE_2D, this._fbTexObj);
     ctx.drawArrays(ctx.TRIANGLES, 0, 6);
 }
 function imageInstance(url, onLoad, onError) {
@@ -536,8 +539,8 @@ class HeatmapRenderer {
         this.opacity = 0;
         this.hearmapExData = {};
         this.gradient = null;
-        this.imageTexture = null;
-        this.pDataLength = undefined;
+        this._imageTexture = null;
+        this._pDataLength = undefined;
         this.imgWidth = 0;
         this.imgHeight = 0;
         this.heatmapData = [];
@@ -581,11 +584,11 @@ class HeatmapRenderer {
             this.hearmapExData = {};
             this.layer = layer;
             this.dom = res;
-            this.gradShadOP = createGradiantShader(this.ctx, GradShader);
-            this.colorShadOP = createColorShader(this.ctx, ColorShader);
-            this.imageShaOP = createImageShader(this.ctx, ImageShader);
-            this.fbTexObj = ctx.createTexture();
-            this.fbo = ctx.createFramebuffer();
+            this._gradShadOP = createGradiantShader(this.ctx, GradShader);
+            this._colorShadOP = createColorShader(this.ctx, ColorShader);
+            this._imageShaOP = createImageShader(this.ctx, ImageShader);
+            this._fbTexObj = ctx.createTexture();
+            this._fbo = ctx.createFramebuffer();
             if (!isNullUndefined(config.size)) {
                 this.setSize(config.size);
             }
@@ -646,7 +649,7 @@ class HeatmapRenderer {
         }
     }
     /**
-    * Invoke resize method to rerender as container resizes.
+    * Invoke resize method on container resize.
     */
     resize() {
         const height = this.dom.clientHeight;
@@ -698,7 +701,7 @@ class HeatmapRenderer {
         return this;
     }
     /**
-   * Set the translate transformation on the canvas
+   * Set the translate on the Heatmap
    * @param translate - Accepts array [x, y]
    * @returns instance
    */
@@ -713,7 +716,7 @@ class HeatmapRenderer {
         return this;
     }
     /**
-   * Set the zoom transformation on the canvas
+   * Set the zoom transformation on the Heatmap
    * @param zoom - Accepts float value
    * @returns instance
    */
@@ -725,7 +728,7 @@ class HeatmapRenderer {
         return this;
     }
     /**
-   * Set the  rotation transformation on the canvas
+   * Set the  rotation transformation on the Heatmap
    * @param angle - Accepts angle in radians
    * @returns instance
    */
@@ -782,7 +785,7 @@ class HeatmapRenderer {
     }
     /**
    * Set the background image
-   * @param config - Accepts Object with { Url, height, width, x, and y} properties
+   * @param config - Accepts Object with { url, height, width, x, and y} properties
    * @returns instance
    */
     setBackgroundImage(config) {
@@ -792,7 +795,7 @@ class HeatmapRenderer {
             return;
         }
         const maxTextureSize = this.ctx.getParameter(this.ctx.MAX_TEXTURE_SIZE);
-        this.imageTexture = this.ctx.createTexture();
+        this._imageTexture = this.ctx.createTexture();
         this.type = "TEXTURE_2D";
         this.imageConfig = null;
         this.imgWidth = config.width || this.width;
@@ -803,7 +806,7 @@ class HeatmapRenderer {
             this.imgHeight > maxTextureSize ? maxTextureSize : this.imgHeight;
         imageInstance(config.url, function onUpdateCallBack() {
             self.ctx.activeTexture(self.ctx.TEXTURE0);
-            self.ctx.bindTexture(self.ctx.TEXTURE_2D, self.imageTexture);
+            self.ctx.bindTexture(self.ctx.TEXTURE_2D, self._imageTexture);
             self.ctx.texParameteri(self.ctx.TEXTURE_2D, self.ctx.TEXTURE_WRAP_S, self.ctx.CLAMP_TO_EDGE);
             self.ctx.texParameteri(self.ctx.TEXTURE_2D, self.ctx.TEXTURE_WRAP_T, self.ctx.CLAMP_TO_EDGE);
             self.ctx.texParameteri(self.ctx.TEXTURE_2D, self.ctx.TEXTURE_MIN_FILTER, self.ctx.LINEAR);
@@ -823,7 +826,7 @@ class HeatmapRenderer {
         return this;
     }
     /**
-   * Clears heatmap
+   * Clear heatmap
    */
     clearData() {
         this.heatmapData = [];
@@ -831,7 +834,7 @@ class HeatmapRenderer {
         this.render();
     }
     /**
-   * After adding data points, need to invoke .render() method to update the heatmap
+   * Method to append data points. This method automatically adds new data points to the existing dataset and the heatmap updates in immediately. no need to call the ".render" method separately.
    * @param data - The data points with 'x', 'y' and 'value'
    * @param transIntactFlag - Flag indicating whether to apply existing heatmap transformations on the newly added data points
    * @returns instance
@@ -849,6 +852,7 @@ class HeatmapRenderer {
         return this;
     }
     /**
+   * Method to load data. This will override any existing data.
    * @param data - Accepts an array of data points with 'x', 'y' and 'value'
    * @returns instance
    */
@@ -862,13 +866,13 @@ class HeatmapRenderer {
         return this;
     }
     /**
-   * Method to re-render the heatmap. This method needs to be invoked as and when configurations get changed
+   * Method to update the heatmap. This method to be invoked on every change in configuration.
    */
     render() {
         renderExec.call(this);
     }
     /**
-   * Get projected co-ordinates relative to the heatmap layer
+   * Get projected co-ordinates relative to the heatmap
    * @param data - The data point to project.
    * @returns projected data point.
    */

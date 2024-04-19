@@ -16,14 +16,14 @@ export declare class HeatmapRenderer {
     translate: [number, number];
     opacity: number;
     hearmapExData: HearmapExData | object;
-    gradShadOP: ShaderProgram;
-    colorShadOP: ShaderProgram;
-    imageShaOP: ShaderProgram;
-    fbTexObj: WebGLTexture;
-    fbo: WebGLFramebuffer;
     gradient: MappedGradient | null;
-    imageTexture: WebGLTexture | null;
-    pDataLength: number | undefined;
+    _imageTexture: WebGLTexture | null;
+    _pDataLength: number | undefined;
+    _gradShadOP: ShaderProgram;
+    _colorShadOP: ShaderProgram;
+    _imageShaOP: ShaderProgram;
+    _fbTexObj: WebGLTexture;
+    _fbo: WebGLFramebuffer;
     private layer;
     private dom;
     private imgWidth;
@@ -32,7 +32,7 @@ export declare class HeatmapRenderer {
     private type;
     constructor(container: string | HTMLElement, config: HeatmapConfig);
     /**
-    * Invoke resize method to rerender as container resizes.
+    * Invoke resize method on container resize.
     */
     resize(): void;
     clear(): void;
@@ -55,19 +55,19 @@ export declare class HeatmapRenderer {
    */
     setGradient(gradient: GradientElement[]): HeatmapRenderer;
     /**
-   * Set the translate transformation on the canvas
+   * Set the translate on the Heatmap
    * @param translate - Accepts array [x, y]
    * @returns instance
    */
-    setTranslate(translate: Translate): this;
+    setTranslate(translate: Translate): HeatmapRenderer;
     /**
-   * Set the zoom transformation on the canvas
+   * Set the zoom transformation on the Heatmap
    * @param zoom - Accepts float value
    * @returns instance
    */
     setZoom(zoom: number): HeatmapRenderer;
     /**
-   * Set the  rotation transformation on the canvas
+   * Set the  rotation transformation on the Heatmap
    * @param angle - Accepts angle in radians
    * @returns instance
    */
@@ -92,32 +92,33 @@ export declare class HeatmapRenderer {
     setOpacity(opacity: number): HeatmapRenderer;
     /**
    * Set the background image
-   * @param config - Accepts Object with { Url, height, width, x, and y} properties
+   * @param config - Accepts Object with { url, height, width, x, and y} properties
    * @returns instance
    */
-    setBackgroundImage(config: BackgroundImageConfig): this | undefined;
+    setBackgroundImage(config: BackgroundImageConfig): HeatmapRenderer | undefined;
     /**
-   * Clears heatmap
+   * Clear heatmap
    */
     clearData(): void;
     /**
-   * After adding data points, need to invoke .render() method to update the heatmap
+   * Method to append data points. This method automatically adds new data points to the existing dataset and the heatmap updates in immediately. no need to call the ".render" method separately.
    * @param data - The data points with 'x', 'y' and 'value'
    * @param transIntactFlag - Flag indicating whether to apply existing heatmap transformations on the newly added data points
    * @returns instance
    */
     addData(data: Point[], transIntactFlag: boolean): HeatmapRenderer;
     /**
+   * Method to load data. This will override any existing data.
    * @param data - Accepts an array of data points with 'x', 'y' and 'value'
    * @returns instance
    */
     renderData(data: Point[]): HeatmapRenderer;
     /**
-   * Method to re-render the heatmap. This method needs to be invoked as and when configurations get changed
+   * Method to update the heatmap. This method to be invoked on every change in configuration.
    */
     render(): void;
     /**
-   * Get projected co-ordinates relative to the heatmap layer
+   * Get projected co-ordinates relative to the heatmap
    * @param data - The data point to project.
    * @returns projected data point.
    */
