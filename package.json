@@ -1,6 +1,6 @@
 {
   "name": "visual-heatmap",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "\"Advanced Visual Heatmap - High Scale webGL based rendering.\"",
   "module": "./dist/visualHeatmap.esm.js",
   "main": "./dist/visualHeatmap.js",
@@ -27,10 +27,12 @@
   ],
   "author": "Narayana Swamy",
   "license": "BSD-3-Clause",
-  "contributors": [{
-    "name": "Mohit Kumar Toshniwal",
-    "email": "mohitkrtoshniwal@gmail.com"
-  }],
+  "contributors": [
+    {
+      "name": "Mohit Kumar Toshniwal",
+      "email": "mohitkrtoshniwal@gmail.com"
+    }
+  ],
   "bugs": {
     "url": "https://github.com/nswamy14/visual-heatmap/issues"
   },
