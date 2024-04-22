@@ -15,7 +15,7 @@ npm
 ```
 npm i visual-heatmap --save
 ```
-Or Download source code from below links
+Or Download the source code from the below links
 
 * [visualHeatmap.min.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.min.js)
 * [visualHeatmap.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.js)
@@ -33,7 +33,7 @@ import Heatmap from 'visual-heatmap'
 ```
 
 ### Instance Creation API
-visualHeatmap provides a API to create heatmap instance. API accepts container/containerId and config as an input. A context element will be created under the provided Div #containerId.
+visualHeatmap provides an API to create heatmap instances. API accepts container/containerId and config as an input. A context element will be created under the provided Div #containerId.
 ```Javascript
 let instance = Heatmap('#containerId', {
         size: 30.0,  //Radius of the data point, in pixels. Default: 20
@@ -65,7 +65,7 @@ let instance = Heatmap('#containerId', {
         }]
     });
 ```
-**Container/ContainerId** : The container div element or a string CSS Query selector which identifies the container.
+**Container/ContainerId** : The container div element or a string CSS Query selector that identifies the container.
 
 **Config Object** :
 ```
@@ -78,8 +78,8 @@ let instance = Heatmap('#containerId', {
      rotationAngle : Rotation angle. Default: 0
      translate : translate vector [x, y]. Default: [0,0]
      zoom : Zoom Factor. Default: 1.0
-     gradient : Color Gradient, array of objects with color value and offset.
-     background: To set background of the heatMap. Value : { url: , x: , y: , height: , width: }
+     gradient : Color Gradient, an array of objects with color value and offset.
+     backgroundImage: To set the background for the heatMap. Value : { url: , x: , y: , height: , width: }
 }
 ```
 
@@ -92,7 +92,7 @@ instance.renderData([{x: , y: , value: }])
 ```
 
 ### instance.addData([], transformationIntactflag);
-Accepts an array of data points with 'x', 'y' and 'value' and a boolean flag to specify to apply existing heatmap transformations on the newly added data points. After adding data points, need to invoke `.render()` method to update the heatmap.
+Accepts an array of data points with 'x', 'y', and 'value' and a boolean flag to specify to apply existing heatmap transformations on the newly added data points. After adding data points, need to invoke the `.render()` method to update the heatmap.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 ```Javascript
 instance.addData([{x: , y: , value: }],transformationIntactflag)
@@ -132,7 +132,7 @@ Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 Api to set color gradient. Accepts array of objects with color value and offset.
 
 ### instance.setIntensity(number)
-Api to set Intensity factor. Accepts float value as an input.
+Api to set the Intensity factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
 ### instance.setOpacity(number)
@@ -148,7 +148,7 @@ Api to get projected co-ordinates relative to the heatmap layer.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmapWithLabels.html)
 
 ### instance.resize()
-Api to rerender heatmep on parent container resizes.
+Api to rerender heatmap on parent container resizes.
 
 ### instance.clear()
 Api to clear canvas.
