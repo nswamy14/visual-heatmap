@@ -41,7 +41,7 @@ let instance = Heatmap('#containerId', {
         min: 0,  // if not set, will be derived from data
         intensity: 1.0, 
         background: {
-            url: "urlPath",
+            url: "urlPath",  // image url
             width: 100, // if not set, viewport width of the image will be considered
             height: 100, // if not set, viewport height of the image will be considered
             x: 0,
