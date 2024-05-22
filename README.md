@@ -26,7 +26,7 @@ Or Download source code from below links
 # Usage
 
 ### Importing
-Visual-Heatmap provides ES6 and UMD modules. Accordingly module can be embeded into applications.
+Visual-Heatmap offers both ES6 and UMD modules, making it possible to integrate the module into applications as needed.
 
 ```
 import Heatmap from 'visual-heatmap'
@@ -128,6 +128,9 @@ Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 Api to set point radius. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 
+### instance.setGradient(gradient)
+Api to set color gradient. Accepts array of objects with color value and offset.
+
 ### instance.setIntensity(number)
 Api to set Intensity factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
@@ -143,6 +146,9 @@ Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 ### instance.projection({x: , y: })
 Api to get projected co-ordinates relative to the heatmap layer.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmapWithLabels.html)
+
+### instance.resize()
+Api to rerender heatmep on parent container resizes.
 
 ### instance.clear()
 Api to clear canvas.

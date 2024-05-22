@@ -12,7 +12,20 @@
 <script type="text/javascript" src="./../dist/visualHeatmap.js"></script>
 <script type="text/javascript" src="./dat.gui.min.js"></script>
 
-<script type="text/javascript">
+<script type="importmap">
+{
+    "imports": {
+        "i2djs": "https://i2djs.github.io/I2Djs/dist/i2d.esm.js",
+        "visualHeatmap": "./../dist/visualHeatmap.esm.js"
+    }
+}
+</script>
+
+<script type="module">
+
+import Heatmap from "visualHeatmap";
+import { webglLayer } from "i2djs";
+
 let data = [];
 let instance = visualHeatmap('#canvas', {
         size: 50.0,
@@ -92,7 +105,7 @@ let instance = visualHeatmap('#canvas', {
 
 
     // rendering labels
-    let webglRenderer = i2d.webglLayer(
+    let webglRenderer = webglLayer(
                 "#canvas",
                 {
                     alpha: true,
