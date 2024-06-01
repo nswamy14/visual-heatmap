@@ -22,7 +22,6 @@ Or Download the source code from the below links
 * [visualHeatmap.esm.js](https://raw.githubusercontent.com/nswamy14/visual-heatmap/master/dist/visualHeatmap.esm.js)
 
 
-
 # Usage
 
 ### Importing
@@ -153,3 +152,7 @@ Api to rerender heatmap on parent container resizes.
 ### instance.clear()
 Api to clear canvas.
 
+
+## ⭐️ Show Your Support
+
+Please give a ⭐️ if this project helped you!
