@@ -15,6 +15,7 @@ export declare class HeatmapRenderer {
     intensity: number;
     translate: [number, number];
     opacity: number;
+    disableCircularFalloff: boolean;
     hearmapExData: HearmapExData | object;
     gradient: MappedGradient | null;
     _imageTexture: WebGLTexture | null;
@@ -90,6 +91,12 @@ export declare class HeatmapRenderer {
    * @returns instance
    */
     setOpacity(opacity: number): HeatmapRenderer;
+    /**
+   * Set whether to disable circular falloff
+   * @param disableCircularFalloff - Boolean to disable circular falloff effect.
+   * @returns instance
+   */
+    setDisableCircularFalloff(disableCircularFalloff: boolean): HeatmapRenderer;
     /**
    * Set the background image
    * @param config - Accepts Object with { url, height, width, x, and y} properties

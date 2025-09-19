@@ -58,6 +58,7 @@ export const GradShader = {
         uniform float u_max;
         uniform float u_min;
         uniform float u_intensity;
+        uniform bool u_disableCircularFalloff;
         in float v_i;
         out vec4 fragColor;
         
@@ -68,7 +69,15 @@ export const GradShader = {
             float deno = max(u_max - u_min, 1e-6);  // Prevent division by zero
             
             if(r <= 1.0) {
-                float alpha = ((v_i - u_min) / deno) * u_intensity * (1.0 - sqrt(r));
+                float alpha;
+                if(u_disableCircularFalloff) {
+                    // No circular falloff - uniform intensity within the point
+                    alpha = ((v_i - u_min) / deno) * u_intensity;
+                } else {
+                    // Apply circular falloff for smoother gradients
+                    alpha = ((v_i - u_min) / deno) * u_intensity * (1.0 - sqrt(r));
+                }
+
                 alpha = clamp(alpha, 0.0, 1.0);  // Clamp alpha to valid range
                 fragColor = vec4(0, 0, 0, alpha);
             } else {

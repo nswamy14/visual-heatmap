@@ -145,6 +145,7 @@ export const createGradiantShader = function (
 			u_zoom: ctx.getUniformLocation(program, "u_zoom"),
 			u_angle: ctx.getUniformLocation(program, "u_angle"),
 			u_density: ctx.getUniformLocation(program, "u_density"),
+			u_disableCircularFalloff: ctx.getUniformLocation(program, "u_disableCircularFalloff"),
 		},
 	};
 };

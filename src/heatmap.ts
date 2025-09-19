@@ -166,7 +166,7 @@ function renderHeatGrad(
 ) {
 	ctx.useProgram(this._gradShadOP.program);
 
-	const {u_resolution, u_translate, u_zoom, u_angle, u_density, u_max, u_min, u_size, u_intensity } = this._gradShadOP.uniform;
+	const {u_resolution, u_translate, u_zoom, u_angle, u_density, u_max, u_min, u_size, u_intensity, u_disableCircularFalloff } = this._gradShadOP.uniform;
 	this.min =
     this.configMin !== null ? this.configMin : exData?.minMax?.min ?? 0;
 	this.max =
@@ -189,6 +189,7 @@ function renderHeatGrad(
 	ctx.uniform1f(u_min, this.min);
 	ctx.uniform1f(u_size, this.size);
 	ctx.uniform1f(u_intensity, this.intensity);
+	ctx.uniform1i(u_disableCircularFalloff, this.disableCircularFalloff ? 1 : 0);
 
 	this._gradShadOP.attr.forEach(function (d) {
 		ctx.bindBuffer(d.bufferType, d.buffer);
@@ -196,6 +197,10 @@ function renderHeatGrad(
 		ctx.enableVertexAttribArray(d.attribute);
 		ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0);
 	});
+
+	if (this.disableCircularFalloff) {
+		ctx.blendEquation(ctx.MAX);
+	}
 
 	ctx.drawArrays(ctx.POINTS, 0, (exData.posVec || []).length / 2);
 }
@@ -307,6 +312,7 @@ export class HeatmapRenderer {
 	intensity: number = 0;
 	translate: [number, number] = [0, 0];
 	opacity: number = 0;
+	disableCircularFalloff: boolean = false;
 	hearmapExData: HearmapExData | object = {};
 
 	gradient: MappedGradient | null = null;
@@ -587,6 +593,19 @@ export class HeatmapRenderer {
 			throw new Error("Invalid Opacity value " + opacity);
 		}
 		this.opacity = opacity;
+		return this;
+	}
+
+	/**
+   * Set whether to disable circular falloff
+   * @param disableCircularFalloff - Boolean to disable circular falloff effect.
+   * @returns instance
+   */
+	setDisableCircularFalloff(disableCircularFalloff: boolean): HeatmapRenderer {
+		if (typeof disableCircularFalloff !== 'boolean') {
+			throw new Error('Invalid disableCircularFalloff: Expected Boolean');
+		}
+		this.disableCircularFalloff = disableCircularFalloff;
 		return this;
 	}
 

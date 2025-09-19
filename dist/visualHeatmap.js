@@ -67,6 +67,7 @@ vec2 rotation(vec2 v, float a, float aspect) {
         uniform float u_max;
         uniform float u_min;
         uniform float u_intensity;
+        uniform bool u_disableCircularFalloff;
         in float v_i;
         out vec4 fragColor;
         
@@ -77,7 +78,15 @@ vec2 rotation(vec2 v, float a, float aspect) {
             float deno = max(u_max - u_min, 1e-6);  // Prevent division by zero
             
             if(r <= 1.0) {
-                float alpha = ((v_i - u_min) / deno) * u_intensity * (1.0 - sqrt(r));
+                float alpha;
+                if(u_disableCircularFalloff) {
+                    // No circular falloff - uniform intensity within the point
+                    alpha = ((v_i - u_min) / deno) * u_intensity;
+                } else {
+                    // Apply circular falloff for smoother gradients
+                    alpha = ((v_i - u_min) / deno) * u_intensity * (1.0 - sqrt(r));
+                }
+
                 alpha = clamp(alpha, 0.0, 1.0);  // Clamp alpha to valid range
                 fragColor = vec4(0, 0, 0, alpha);
             } else {
@@ -301,6 +310,7 @@ vec2 rotation(vec2 v, float a, float aspect) {
                 u_zoom: ctx.getUniformLocation(program, "u_zoom"),
                 u_angle: ctx.getUniformLocation(program, "u_angle"),
                 u_density: ctx.getUniformLocation(program, "u_density"),
+                u_disableCircularFalloff: ctx.getUniformLocation(program, "u_disableCircularFalloff"),
             },
         };
     };
@@ -464,7 +474,7 @@ vec2 rotation(vec2 v, float a, float aspect) {
     function renderHeatGrad(ctx, exData) {
         var _a, _b, _c, _d;
         ctx.useProgram(this._gradShadOP.program);
-        const { u_resolution, u_translate, u_zoom, u_angle, u_density, u_max, u_min, u_size, u_intensity } = this._gradShadOP.uniform;
+        const { u_resolution, u_translate, u_zoom, u_angle, u_density, u_max, u_min, u_size, u_intensity, u_disableCircularFalloff } = this._gradShadOP.uniform;
         this.min =
             this.configMin !== null ? this.configMin : (_b = (_a = exData === null || exData === void 0 ? void 0 : exData.minMax) === null || _a === void 0 ? void 0 : _a.min) !== null && _b !== void 0 ? _b : 0;
         this.max =
@@ -480,12 +490,16 @@ vec2 rotation(vec2 v, float a, float aspect) {
         ctx.uniform1f(u_min, this.min);
         ctx.uniform1f(u_size, this.size);
         ctx.uniform1f(u_intensity, this.intensity);
+        ctx.uniform1i(u_disableCircularFalloff, this.disableCircularFalloff ? 1 : 0);
         this._gradShadOP.attr.forEach(function (d) {
             ctx.bindBuffer(d.bufferType, d.buffer);
             ctx.bufferData(d.bufferType, d.data, d.drawType);
             ctx.enableVertexAttribArray(d.attribute);
             ctx.vertexAttribPointer(d.attribute, d.size, d.valueType, true, 0, 0);
         });
+        if (this.disableCircularFalloff) {
+            ctx.blendEquation(ctx.MAX);
+        }
         ctx.drawArrays(ctx.POINTS, 0, (exData.posVec || []).length / 2);
     }
     function renderImage(ctx, imageConfig) {
@@ -565,6 +579,7 @@ vec2 rotation(vec2 v, float a, float aspect) {
             this.intensity = 0;
             this.translate = [0, 0];
             this.opacity = 0;
+            this.disableCircularFalloff = false;
             this.hearmapExData = {};
             this.gradient = null;
             this._imageTexture = null;
@@ -809,6 +824,18 @@ vec2 rotation(vec2 v, float a, float aspect) {
                 throw new Error("Invalid Opacity value " + opacity);
             }
             this.opacity = opacity;
+            return this;
+        }
+        /**
+       * Set whether to disable circular falloff
+       * @param disableCircularFalloff - Boolean to disable circular falloff effect.
+       * @returns instance
+       */
+        setDisableCircularFalloff(disableCircularFalloff) {
+            if (typeof disableCircularFalloff !== 'boolean') {
+                throw new Error('Invalid disableCircularFalloff: Expected Boolean');
+            }
+            this.disableCircularFalloff = disableCircularFalloff;
             return this;
         }
         /**

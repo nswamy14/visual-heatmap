@@ -58,6 +58,7 @@ export type HeatmapConfig = {
   opacity?: number;
   gradient: GradientElement[];
   backgroundImage?: BackgroundImageConfig;
+  disableCircularFalloff?: boolean;
 };
 
 export type HearmapExData = {
