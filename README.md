@@ -74,6 +74,7 @@ let instance = Heatmap('#containerId', {
      min : Min data Value for relative gradient computation. if not set, will be derived from data.
      intensity : intensity factor. Default: 1.0
      opacity : Opacity factor. Default: 1.0
+     blendEquation : the blend equation to use. Can be one of "ADD", "MIN", "MAX", "SUBTRACT", "REVERSE_SUBTRACT". Default: "ADD"
      rotationAngle : Rotation angle. Default: 0
      translate : translate vector [x, y]. Default: [0,0]
      zoom : Zoom Factor. Default: 1.0
@@ -137,6 +138,9 @@ Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
 ### instance.setOpacity(number)
 Api to set Opacity factor. Accepts float value as an input.
 Try [Example](https://nswamy14.github.io/visual-heatmap/demo/heatmap3.html)
+
+### instance.setBlendEquation(string)
+Api to set the blend equation. Accepts a string as an input. Can be one of "ADD", "MIN", "MAX", "SUBTRACT", "REVERSE_SUBTRACT".
 
 ### instance.setBackgroundImage({ url: , x: , y: , height: , width: })
 Api to set Background image. Accepts Object with { Url, height, width, x, and y} properties as input
