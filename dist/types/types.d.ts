@@ -34,11 +34,19 @@ export interface Point {
     y: number;
     value: number;
 }
+export declare enum BlendEquation {
+    ADD = "ADD",
+    MIN = "MIN",
+    MAX = "MAX",
+    SUBTRACT = "SUBTRACT",
+    REVERSE_SUBTRACT = "REVERSE_SUBTRACT"
+}
 export type HeatmapConfig = {
     size?: number;
     max?: number;
     min?: number;
     intensity?: number;
+    blendEquation?: BlendEquation;
     translate?: [number, number];
     zoom?: number;
     angle?: number;
