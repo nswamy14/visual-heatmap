@@ -1,4 +1,4 @@
-import { BackgroundImageConfig, GradientElement, HearmapExData, HeatmapConfig, MappedGradient, Point, ShaderProgram, Translate } from "./types";
+import { BackgroundImageConfig, BlendEquation, GradientElement, HearmapExData, HeatmapConfig, MappedGradient, Point, ShaderProgram, Translate } from "./types";
 export declare class HeatmapRenderer {
     ctx: WebGL2RenderingContext | null;
     ratio: number;
@@ -90,6 +90,12 @@ export declare class HeatmapRenderer {
    * @returns instance
    */
     setOpacity(opacity: number): HeatmapRenderer;
+    /**
+     * Set the blend equation for the heatmap rendering
+     * @param equation - Accepts a value from the BlendEquation enum
+     * @returns instance
+     */
+    setBlendEquation(equation: BlendEquation): HeatmapRenderer;
     /**
    * Set the background image
    * @param config - Accepts Object with { url, height, width, x, and y} properties

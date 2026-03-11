@@ -1,6 +1,6 @@
 /*!
       * Heatmap
-      * (c) 2025 Narayana Swamy (narayanaswamy14@gmail.com)
+      * (c) 2026 Narayana Swamy (narayanaswamy14@gmail.com)
       * @license BSD-3-Clause
       */
 /**
@@ -173,6 +173,15 @@ const ImageShader = {
         }
     `,
 };
+
+var BlendEquation;
+(function (BlendEquation) {
+    BlendEquation["ADD"] = "ADD";
+    BlendEquation["MIN"] = "MIN";
+    BlendEquation["MAX"] = "MAX";
+    BlendEquation["SUBTRACT"] = "SUBTRACT";
+    BlendEquation["REVERSE_SUBTRACT"] = "REVERSE_SUBTRACT";
+})(BlendEquation || (BlendEquation = {}));
 
 function createShader(ctx, type, src) {
     const shader = ctx.createShader(ctx[type]);
@@ -588,7 +597,6 @@ class HeatmapRenderer {
             this.ratio = getPixelRatio(ctx);
             ctx.clearColor(0, 0, 0, 0);
             ctx.enable(ctx.BLEND);
-            ctx.blendEquation(ctx.FUNC_ADD);
             ctx.blendFunc(ctx.ONE, ctx.ONE_MINUS_SRC_ALPHA);
             ctx.depthMask(true);
             layer.setAttribute("height", (height * this.ratio).toString());
@@ -634,6 +642,12 @@ class HeatmapRenderer {
             }
             else {
                 this.intensity = 1.0;
+            }
+            if (!isNullUndefined(config.blendEquation)) {
+                this.setBlendEquation(config.blendEquation);
+            }
+            else {
+                this.setBlendEquation(BlendEquation.ADD);
             }
             if (!isNullUndefined(config.translate)) {
                 this.setTranslate(config.translate);
@@ -803,6 +817,36 @@ class HeatmapRenderer {
             throw new Error("Invalid Opacity value " + opacity);
         }
         this.opacity = opacity;
+        return this;
+    }
+    /**
+     * Set the blend equation for the heatmap rendering
+     * @param equation - Accepts a value from the BlendEquation enum
+     * @returns instance
+     */
+    setBlendEquation(equation) {
+        if (!this.ctx) {
+            throw new Error("WebGL context not initialized");
+        }
+        switch (equation) {
+            case BlendEquation.ADD:
+                this.ctx.blendEquation(this.ctx.FUNC_ADD);
+                break;
+            case BlendEquation.MIN:
+                this.ctx.blendEquation(this.ctx.MIN);
+                break;
+            case BlendEquation.MAX:
+                this.ctx.blendEquation(this.ctx.MAX);
+                break;
+            case BlendEquation.SUBTRACT:
+                this.ctx.blendEquation(this.ctx.FUNC_SUBTRACT);
+                break;
+            case BlendEquation.REVERSE_SUBTRACT:
+                this.ctx.blendEquation(this.ctx.FUNC_REVERSE_SUBTRACT);
+                break;
+            default:
+                throw new Error("Invalid blend equation: " + equation);
+        }
         return this;
     }
     /**
